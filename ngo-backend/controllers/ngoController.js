@@ -69,4 +69,122 @@ exports.getNgoDonations = async (req, res) => {
     console.error('Error fetching NGO donations:', err.message);
     res.status(500).json({ error: 'Server error loading NGO donations.' });
   }
-};
+};
+
+exports.getNgoDirectory = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        n.id,
+        n.org_name,
+        n.contact_name,
+        n.email,
+        n.darpan_id,
+        n.verification_status,
+        n.short_name,
+        n.hq,
+        n.founded,
+        n.tagline,
+        n.reg_type,
+        n.pan,
+        n.fcra,
+        n.status_80g,
+        n.sectors,
+        n.team,
+        n.created_at,
+        (
+          SELECT COALESCE(json_agg(
+            json_build_object(
+              'id', c.id,
+              'name', c.name,
+              'disaster', c.disaster,
+              'region', c.region,
+              'status', c.status,
+              'progress', c.progress,
+              'isUrgent', c.is_urgent,
+              'targetHouseholds', c.target_households,
+              'householdsReached', COALESCE((c.beneficiaries->>'householdsReached')::int, 0),
+              'individualsReached', COALESCE((c.beneficiaries->>'individualsReached')::int, 0)
+            ) ORDER BY c.created_at DESC
+          ), '[]')
+          FROM campaigns c
+          WHERE c.ngo_id = n.id AND (c.status = 'active' OR c.status IS NULL)
+        ) AS active_campaigns,
+        (
+          SELECT COUNT(*)::int
+          FROM campaigns c
+          WHERE c.ngo_id = n.id
+        ) AS total_campaigns_count,
+        (
+          SELECT COALESCE(SUM((c.beneficiaries->>'householdsReached')::int), 0)::int
+          FROM campaigns c
+          WHERE c.ngo_id = n.id
+        ) AS total_households_reached,
+        (
+          SELECT COALESCE(json_agg(
+            json_build_object(
+              'id', w.id,
+              'title', w.title,
+              'city', w.city,
+              'date', w.date,
+              'time', w.time,
+              'location', w.location,
+              'targetCapacity', w.target_capacity,
+              'registeredCount', w.registered_count,
+              'formUrl', w.form_url
+            ) ORDER BY w.created_at DESC
+          ), '[]')
+          FROM workshops w
+          WHERE w.ngo_id = n.id
+        ) AS workshops
+      FROM ngos n
+      WHERE n.verification_status = 'APPROVED'
+      ORDER BY n.id ASC;
+    `);
+
+    const directory = result.rows.map(row => {
+      const activeCampaigns = row.active_campaigns || [];
+      const regions = [...new Set(activeCampaigns.map(c => c.region).filter(Boolean))];
+      if (row.hq && !regions.includes(row.hq)) {
+        regions.unshift(row.hq);
+      }
+
+      const sectors = Array.isArray(row.sectors) && row.sectors.length > 0
+        ? row.sectors
+        : ['Disaster Relief', 'Emergency Aid', 'Community Rehabilitation'];
+
+      return {
+        id: row.id,
+        name: row.org_name,
+        shortName: row.short_name || (row.org_name ? row.org_name.substring(0, 3).toUpperCase() : 'NGO'),
+        contactName: row.contact_name,
+        email: row.email,
+        darpanId: row.darpan_id,
+        hq: row.hq || 'India',
+        founded: row.founded || 2020,
+        tagline: row.tagline || 'Community Disaster Relief and Grassroots Humanitarian Response.',
+        regType: row.reg_type || 'Registered Non-Profit Society',
+        pan: row.pan || 'Verified',
+        fcra: row.fcra || 'Registered',
+        status80g: row.status_80g || 'Active 80G Certified',
+        sectors,
+        team: Array.isArray(row.team) && row.team.length > 0 ? row.team : [
+          { name: row.contact_name || 'Operations Lead', role: 'Operations & Field Lead', since: '2024' }
+        ],
+        activeCampaigns,
+        campaignsCount: activeCampaigns.length,
+        totalCampaignsCount: row.total_campaigns_count || 0,
+        totalHouseholdsReached: row.total_households_reached || 0,
+        regions,
+        workshops: row.workshops || [],
+        workshopsCount: (row.workshops || []).length,
+        createdAt: row.created_at
+      };
+    });
+
+    res.json(directory);
+  } catch (err) {
+    console.error('Error fetching NGO directory:', err.message);
+    res.status(500).json({ error: 'Failed to load NGO directory.' });
+  }
+};

@@ -44,7 +44,6 @@ export default function ActivitiesPage({ campaigns, onNavCampaign }) {
 
       {list.length === 0 ? (
         <div className="empty">
-          <Icon name="activities" />
           <div className="empty-title">No activities found</div>
           <div className="empty-sub">Try a different filter.</div>
         </div>

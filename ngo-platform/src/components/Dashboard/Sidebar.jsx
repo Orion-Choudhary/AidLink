@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { LogOut, Home } from 'lucide-react';
 import Icon from './Icons';
 
 const NAV_ITEMS = [
@@ -18,7 +20,15 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar({ currentView, onNav, pendingVolCount, missingEvidenceCount, orgName, isSidebarOpen, onCloseSidebar }) {
+  const navigate = useNavigate();
   const activeItem = currentView === "campaign-detail" ? "campaigns" : currentView;
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   return (
     <>
@@ -30,7 +40,7 @@ export default function Sidebar({ currentView, onNav, pendingVolCount, missingEv
       <aside id="sidebar" className={isSidebarOpen ? "open" : ""}>
         <div className="brand">
           <div className="brand-mark">
-            <div className="brand-logo"></div>
+            <div className="brand-logo">A</div>
             <div className="brand-name">AidLink</div>
           </div>
           <div className="brand-org">{orgName}</div>
@@ -57,8 +67,21 @@ export default function Sidebar({ currentView, onNav, pendingVolCount, missingEv
             );
           })}
         </nav>
-        <div className="sidebar-foot">
-          Data shown is illustrative.<br />Donations are simulated, not live payments.
+        <div className="sidebar-foot" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <Link
+            to="/"
+            style={{ color: '#D7E4DF', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}
+          >
+            <Home size={15} />
+            <span>Public Home</span>
+          </Link>
+          <button
+            onClick={handleLogout}
+            style={{ background: 'none', border: 'none', color: '#FA8072', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: 0, fontSize: '12px' }}
+          >
+            <LogOut size={15} />
+            <span>Log out</span>
+          </button>
         </div>
       </aside>
     </>

@@ -61,7 +61,7 @@ export default function TransparencyPage({ campaigns = [], org, onNav }) {
 
       <div className="grid grid-2" style={{ alignItems: 'start', marginBottom: '18px' }}>
         <div className="card card-pad">
-          <div className="card-title" style={{ marginBottom: '10px' }}><Icon name="shield" /> Verification standing</div>
+          <div className="card-title" style={{ marginBottom: '10px' }}>Verification standing</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <StatusBadge status={org?.verification_status || "verified"} />
             <span className="faint" style={{ fontSize: '12px' }}>Completed {fmtDate(verificationDate)}</span>
@@ -73,7 +73,7 @@ export default function TransparencyPage({ campaigns = [], org, onNav }) {
         </div>
 
         <div className="card card-pad">
-          <div className="card-title" style={{ marginBottom: '10px' }}><Icon name="expenses" /> Expense documentation coverage</div>
+          <div className="card-title" style={{ marginBottom: '10px' }}>Expense documentation coverage</div>
           <div className="progress-row" style={{ marginBottom: '8px' }}>
             <div className="progress-track"><div className="progress-fill" style={{ width: `${expCoveragePct}%` }}></div></div>
             <div className="progress-num">{expCoveragePct}%</div>
@@ -85,7 +85,7 @@ export default function TransparencyPage({ campaigns = [], org, onNav }) {
       </div>
 
       <div className="card card-pad">
-        <div className="card-title" style={{ marginBottom: '12px' }}><Icon name="history" /> Full audit trail</div>
+        <div className="card-title" style={{ marginBottom: '12px' }}>Full audit trail</div>
         {allAudit.length === 0 ? (
           <div className="faint" style={{ fontSize: '13px', padding: '16px 0' }}>No audit trail actions logged yet.</div>
         ) : (

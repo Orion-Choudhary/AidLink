@@ -16,7 +16,6 @@ import {
   Sparkles,
   Calendar,
   Clock,
-  DollarSign,
   TrendingUp,
   Search,
   Filter,
@@ -24,7 +23,6 @@ import {
   Settings as SettingsIcon,
   Check,
   ChevronRight,
-  Menu,
   X,
   Share2,
   Award,
@@ -32,9 +30,33 @@ import {
   FileText
 } from "lucide-react";
 import SupporterSidebar from "../../components/Dashboard/SupporterSidebar";
+import "./NGODashboard.css";
 import "./SupporterDashboard.css";
+import SupporterDashboardSkeleton from "./skeletons/SupporterDashboardSkeleton";
 
 const API_BASE = "http://localhost:5000/api";
+
+const IndianRupee = ({ size = 24, className = "" }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <path d="M6 3h12" />
+    <path d="M6 8h12" />
+    <path d="m6 13 8.5 8" />
+    <path d="M6 13h3" />
+    <path d="M9 13c6.667 0 6.667-10 0-10" />
+  </svg>
+);
 
 export default function SupporterDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -92,7 +114,6 @@ export default function SupporterDashboard() {
   const [isUploadingProfileDoc, setIsUploadingProfileDoc] = useState(false);
 
   const [donationForm, setDonationForm] = useState({ amount: "1000", purpose: "Medical & Food Aid", method: "UPI" });
-  const [hoursToLog, setHoursToLog] = useState("4");
 
   const fileInputRef = useRef(null);
   const profileFileInputRef = useRef(null);
@@ -140,7 +161,9 @@ export default function SupporterDashboard() {
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
     } finally {
-      setIsLoading(false);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
     }
   };
 
@@ -313,12 +336,29 @@ export default function SupporterDashboard() {
   const handleDonationSubmit = async (e) => {
     e.preventDefault();
     if (!selectedCampaign && !selectedNgo) {
-      showToast("Please select a registered NGO to donate to.");
+      showToast("Please select a registered NGO or campaign to donate to.");
       return;
     }
 
     try {
       const token = getAuthToken();
+      let campId = null;
+      if (selectedCampaign) {
+        if (selectedCampaign.rawId) {
+          campId = selectedCampaign.rawId;
+        } else if (selectedCampaign.id) {
+          const digits = String(selectedCampaign.id).replace(/\D/g, '');
+          if (digits) campId = parseInt(digits, 10);
+        }
+      }
+
+      let ngoId = null;
+      if (selectedCampaign?.ngo_id || selectedCampaign?.ngoId) {
+        ngoId = selectedCampaign.ngo_id || selectedCampaign.ngoId;
+      } else if (selectedNgo?.id) {
+        ngoId = selectedNgo.id;
+      }
+
       const res = await fetch(`${API_BASE}/supporters/donate`, {
         method: "POST",
         headers: {
@@ -326,8 +366,8 @@ export default function SupporterDashboard() {
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-          campaignId: selectedCampaign?.id || null,
-          ngoId: selectedCampaign ? null : (selectedNgo?.id || null),
+          campaignId: campId,
+          ngoId: ngoId,
           amount: parseFloat(donationForm.amount) || 500,
           purpose: donationForm.purpose,
           method: donationForm.method
@@ -348,35 +388,7 @@ export default function SupporterDashboard() {
     }
   };
 
-  // Handle Log Hours Submit
-  const handleLogHoursSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = getAuthToken();
-      const res = await fetch(`${API_BASE}/supporters/log-hours`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          volunteerId: selectedVolunteerRecord?.id,
-          hours: parseInt(hoursToLog, 10) || 1
-        })
-      });
 
-      if (res.ok) {
-        showToast("Volunteer hours logged successfully!");
-        setActiveModal(null);
-        loadDashboardData();
-        loadVolunteering();
-      } else {
-        showToast("Failed to log hours.");
-      }
-    } catch (err) {
-      showToast("Unable to reach server.");
-    }
-  };
 
   // Filtered campaigns for discovery
   const filteredCampaigns = campaigns.filter((c) => {
@@ -390,7 +402,7 @@ export default function SupporterDashboard() {
   });
 
   return (
-    <div className="supporter-dashboard-root min-h-screen flex bg-paper text-ink font-sans">
+    <div id="appshell" className="supporter-dashboard-root min-h-screen">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 bg-emerald-800 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in">
@@ -405,55 +417,71 @@ export default function SupporterDashboard() {
         onSelectTab={setActiveTab}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        supporterName={supporter.name}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {/* Top Navbar / Header */}
-        <div className="sticky top-0 z-30 bg-paper/90 backdrop-blur-md border-b border-hairline px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="p-2 rounded-lg text-ink-soft hover:bg-ink/5 md:hidden"
-              aria-label="Open sidebar"
-            >
-              <Menu size={20} />
-            </button>
-            <span className="font-display font-medium text-lg text-ink capitalize">
-              {activeTab.replace("-", " ")}
-            </span>
+      <div id="main">
+        {/* Top Navbar / Header matching NGO Topbar */}
+        <header id="topbar">
+          <div className="search-box">
+            <Search size={15} />
+            <input
+              type="text"
+              placeholder="Search campaigns, workshops, commitments..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="topbar-right">
             <button
-              onClick={() => setActiveTab("notifications")}
-              aria-label="Notifications"
-              className="relative p-2 rounded-full text-ink-soft hover:bg-ink/5 transition-colors"
+              className="btn btn-secondary btn-sm"
+              onClick={() => setActiveTab("discover")}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
             >
-              <Bell size={20} strokeWidth={1.75} />
-              {recentActivity.length > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-600 rounded-full" />
-              )}
+              <Compass size={14} /> Discover
+            </button>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setActiveTab("donations")}
+            >
+              <HeartHandshake size={14} /> Donate
+            </button>
+            <button
+              className="icon-btn"
+              aria-label="Notifications"
+              onClick={() => setActiveTab("notifications")}
+            >
+              <Bell size={18} />
+              {recentActivity.length > 0 && <span className="dot-badge"></span>}
             </button>
             <div
+              className="topbar-org"
+              style={{ cursor: 'pointer' }}
               onClick={() => setActiveTab("profile")}
-              className="flex items-center gap-2.5 cursor-pointer pl-3 border-l border-hairline hover:opacity-80"
             >
-              <div className="w-8 h-8 rounded-full bg-verified text-white flex items-center justify-center text-sm font-semibold">
+              <div className="org-avatar">
                 {supporter.name ? supporter.name.charAt(0).toUpperCase() : "S"}
               </div>
-              <div className="hidden sm:block text-left">
-                <p className="text-xs font-semibold text-ink leading-none">{supporter.name || "Supporter"}</p>
-                <p className="text-[11px] text-ink-soft mt-0.5">Supporter / Individual</p>
+              <div className="org-meta">
+                <div className="n">{supporter.name || "Supporter"}</div>
+                <div className="v">
+                  <Check size={12} /> Active Supporter
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Dynamic Views */}
-        <div className="px-6 md:px-10 py-8 max-w-5xl w-full mx-auto">
-          {/* 1. OVERVIEW TAB */}
-          {activeTab === "overview" && (
+        <div id="content" className="w-full">
+          {isLoading ? (
+            <SupporterDashboardSkeleton />
+          ) : (
+            <>
+              {/* 1. OVERVIEW TAB */}
+              {activeTab === "overview" && (
             <>
               {/* Header Greeting with Real Supporter Name */}
               <div className="flex items-start justify-between mb-6">
@@ -506,12 +534,6 @@ export default function SupporterDashboard() {
                     {stats.activities}
                   </div>
                   <div className="text-sm text-ink-soft mt-1">Volunteer Applications</div>
-                </div>
-                <div className="flex-1 px-6 py-5">
-                  <div className="font-display text-3xl md:text-4xl text-ink font-semibold">
-                    {stats.volunteerHours} hrs
-                  </div>
-                  <div className="text-sm text-ink-soft mt-1">Volunteer Hours Logged</div>
                 </div>
                 <div className="flex-1 px-6 py-5">
                   <div className="font-display text-3xl md:text-4xl text-emerald-700 font-semibold">
@@ -699,8 +721,7 @@ export default function SupporterDashboard() {
                   </p>
                 ) : (
                   <p className="text-ink leading-relaxed text-sm md:text-base">
-                    You have participated in <span className="font-semibold text-emerald-800">{stats.activities} relief initiatives</span>, logged{" "}
-                    <span className="font-semibold text-emerald-800">{stats.volunteerHours} hours</span> of ground service, and contributed{" "}
+                    You have participated in <span className="font-semibold text-emerald-800">{stats.activities} relief initiatives</span> and contributed{" "}
                     <span className="font-semibold text-emerald-800">₹{stats.totalDonatedAmount.toLocaleString("en-IN")}</span> to disaster response operations.
                   </p>
                 )}
@@ -1039,15 +1060,15 @@ export default function SupporterDashboard() {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => {
-                            setSelectedVolunteerRecord(vol);
-                            setActiveModal("log-hours");
-                          }}
-                          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
-                        >
-                          Log hours ({vol.hours_logged || 0} hrs logged)
-                        </button>
+                        <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
+                          vol.status === 'active' 
+                            ? 'bg-emerald-100 text-emerald-800' 
+                            : vol.status === 'rejected' 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {vol.status === 'active' ? 'Approved & Assigned' : vol.status === 'rejected' ? 'Declined' : 'Pending Review'}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -1088,23 +1109,15 @@ export default function SupporterDashboard() {
                         <p className="text-sm text-ink-soft">
                           Campaign: <span className="font-medium text-ink">{act.campaign_name}</span> ({act.region || "On-ground"})
                         </p>
-                        <div className="flex items-center gap-4 text-xs text-ink-soft mt-2">
-                          <span className="flex items-center gap-1 font-medium text-ink">
-                            <Clock size={13} /> {act.hours_logged || 0} Hours logged
-                          </span>
-                        </div>
+                        <p className="text-xs text-ink-faint mt-1">
+                          Organized by {act.org_name || "Verified NGO Partner"}
+                        </p>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedVolunteerRecord(act);
-                            setActiveModal("log-hours");
-                          }}
-                          className="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg bg-verified text-white hover:bg-emerald-700"
-                        >
-                          Log Service Hours
-                        </button>
+                        <span className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          Active Duty
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -1238,15 +1251,6 @@ export default function SupporterDashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="p-6 bg-white border border-hairline rounded-xl shadow-xs">
-                  <Award size={24} className="text-emerald-600 mb-2" />
-                  <div className="font-display text-3xl font-bold text-ink">
-                    {stats.volunteerHours}
-                  </div>
-                  <p className="text-xs text-ink-soft uppercase font-semibold mt-1">Total Hours Logged</p>
-                  <p className="text-xs text-ink-soft mt-2">Certified volunteer service hours on ground.</p>
-                </div>
-
-                <div className="p-6 bg-white border border-hairline rounded-xl shadow-xs">
                   <TrendingUp size={24} className="text-emerald-600 mb-2" />
                   <div className="font-display text-3xl font-bold text-ink">{stats.activities}</div>
                   <p className="text-xs text-ink-soft uppercase font-semibold mt-1">Campaigns Applied / Joined</p>
@@ -1254,7 +1258,14 @@ export default function SupporterDashboard() {
                 </div>
 
                 <div className="p-6 bg-white border border-hairline rounded-xl shadow-xs">
-                  <DollarSign size={24} className="text-emerald-600 mb-2" />
+                  <Award size={24} className="text-emerald-600 mb-2" />
+                  <div className="font-display text-3xl font-bold text-ink">{stats.totalDonations}</div>
+                  <p className="text-xs text-ink-soft uppercase font-semibold mt-1">Direct Contributions</p>
+                  <p className="text-xs text-ink-soft mt-2">Donations made to relief initiatives.</p>
+                </div>
+
+                <div className="p-6 bg-white border border-hairline rounded-xl shadow-xs">
+                  <IndianRupee size={24} className="text-emerald-600 mb-2" />
                   <div className="font-display text-3xl font-bold text-emerald-700">
                     ₹{stats.totalDonatedAmount ? stats.totalDonatedAmount.toLocaleString("en-IN") : "0"}
                   </div>
@@ -1441,8 +1452,10 @@ export default function SupporterDashboard() {
               </div>
             </div>
           )}
-        </div>
-      </main>
+        </>
+      )}
+    </div>
+  </div>
 
       {/* =========================================================
          MODALS (Volunteer Application, Donation, Log Hours)
@@ -1556,13 +1569,22 @@ export default function SupporterDashboard() {
             </div>
 
             {selectedCampaign ? (
-              <div className="mb-4 p-3 rounded-lg bg-emerald-50/60 border border-emerald-200/80 text-xs">
-                <div className="font-medium text-emerald-900">Campaign: <strong className="font-bold">{selectedCampaign.name}</strong></div>
-                <div className="text-emerald-700 mt-0.5">Organized by {selectedCampaign.org_name || "Verified NGO Partner"} · {selectedCampaign.region}</div>
+              <div className="mb-4 p-3 rounded-lg bg-emerald-50/60 border border-emerald-200/80 text-xs flex items-center justify-between gap-2">
+                <div>
+                  <div className="font-medium text-emerald-900">Campaign: <strong className="font-bold">{selectedCampaign.name}</strong></div>
+                  <div className="text-emerald-700 mt-0.5">Organized by {selectedCampaign.org_name || "Verified NGO Partner"} · {selectedCampaign.region}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCampaign(null)}
+                  className="text-xs text-emerald-800 hover:text-emerald-950 font-semibold underline shrink-0"
+                >
+                  Change
+                </button>
               </div>
             ) : (
               <div className="mb-4 p-3 rounded-lg bg-emerald-50/60 border border-emerald-200/80 text-xs text-emerald-900">
-                AidLink is an integrating platform and does not accept donations directly. Please select a <strong>registered NGO</strong> below to support their relief mission directly.
+                AidLink is an integrating platform and does not accept donations directly. Please select a <strong>registered NGO</strong> below to support their relief mission directly or link to an active campaign.
               </div>
             )}
 
@@ -1591,13 +1613,44 @@ export default function SupporterDashboard() {
                   </select>
 
                   {selectedNgo && (
-                    <div className="mt-2 p-2.5 rounded-lg bg-gray-50 border border-hairline text-xs text-ink-soft flex items-start gap-2">
-                      <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-semibold text-ink">{selectedNgo.org_name}</div>
-                        <div>{selectedNgo.tagline || (selectedNgo.hq ? `Location: ${selectedNgo.hq}` : 'Verified Relief Organisation')}</div>
+                    <>
+                      <div className="mt-3">
+                        <label className="block text-xs font-semibold text-ink-soft uppercase mb-1">
+                          Select Active Campaign (Optional)
+                        </label>
+                        <select
+                          value={selectedCampaign?.rawId || selectedCampaign?.id || ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (!val) {
+                              setSelectedCampaign(null);
+                            } else {
+                              const cId = parseInt(val, 10);
+                              const found = campaigns.find(c => (c.rawId || c.id) === cId);
+                              setSelectedCampaign(found || { id: cId, rawId: cId, name: campaigns.find(c => (c.rawId || c.id) === cId)?.name || "Emergency Campaign", ngo_id: selectedNgo.id });
+                            }
+                          }}
+                          className="w-full text-sm p-2.5 border border-hairline rounded-lg focus:outline-emerald-600 bg-white font-medium text-ink"
+                        >
+                          <option value="">General NGO Relief Fund (Direct Support)</option>
+                          {campaigns
+                            .filter(c => !selectedNgo || c.ngo_id === selectedNgo.id || c.ngoId === selectedNgo.id || c.org_name === selectedNgo.org_name || c.orgName === selectedNgo.org_name)
+                            .map(c => (
+                              <option key={c.id} value={c.rawId || c.id}>
+                                Campaign: {c.name} ({c.region})
+                              </option>
+                            ))}
+                        </select>
                       </div>
-                    </div>
+
+                      <div className="mt-2 p-2.5 rounded-lg bg-gray-50 border border-hairline text-xs text-ink-soft flex items-start gap-2">
+                        <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-semibold text-ink">{selectedNgo.org_name}</div>
+                          <div>{selectedNgo.tagline || (selectedNgo.hq ? `Location: ${selectedNgo.hq}` : 'Verified Relief Organisation')}</div>
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
               )}
@@ -1691,59 +1744,7 @@ export default function SupporterDashboard() {
         </div>
       )}
 
-      {/* 3. LOG HOURS MODAL */}
-      {activeModal === "log-hours" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 supporter-modal-overlay animate-fade-in">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-hairline">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-xl font-bold text-ink">Log Service Hours</h3>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="p-1 text-ink-soft hover:text-ink rounded-lg"
-              >
-                <X size={20} />
-              </button>
-            </div>
 
-            <p className="text-xs text-ink-soft mb-4">
-              Mission: <strong className="text-ink">{selectedVolunteerRecord?.campaign_name || "Relief Duty"}</strong>
-            </p>
-
-            <form onSubmit={handleLogHoursSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-ink-soft uppercase mb-1">
-                  Hours to add
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="24"
-                  required
-                  value={hoursToLog}
-                  onChange={(e) => setHoursToLog(e.target.value)}
-                  className="w-full text-sm p-2.5 border border-hairline rounded-lg focus:outline-emerald-600"
-                />
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 text-sm font-medium rounded-lg text-ink-soft hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
-                >
-                  Save Hours
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* 4. WORKSHOP INFO MODAL */}
       {activeModal === "workshop-info" && selectedWorkshop && (

@@ -27,7 +27,7 @@ export default function ExpensesPage({ campaigns, onNavCampaign }) {
           <h1>Expenses</h1>
           <div className="page-sub">Declared expenses across campaigns — accountability records, not audited accounting.</div>
         </div>
-        <div className="card card-pad" style={{ textAlign: 'right', minWidth: '180px' }}>
+        <div style={{ textAlign: 'right' }}>
           <div className="stat-label">Total declared</div>
           <div className="stat-num">{fmtINR(total)}</div>
         </div>

@@ -18,7 +18,6 @@ export default function ReportsPage({ campaigns, onViewImpactReport, onNavCampai
 
       {allReports.length === 0 ? (
         <div className="empty">
-          <Icon name="reports" />
           <div className="empty-title">No impact reports published yet</div>
           <div className="empty-sub">Open a campaign and generate its impact report from the Impact Report tab.</div>
         </div>
@@ -50,7 +49,7 @@ export default function ReportsPage({ campaigns, onViewImpactReport, onNavCampai
 
       {eligibleCampaigns.length > 0 && (
         <div className="card card-pad">
-          <div className="card-title" style={{ marginBottom: '10px' }}><Icon name="alert" /> Campaigns without a published report</div>
+          <div className="card-title" style={{ marginBottom: '10px' }}>Campaigns without a published report</div>
           {eligibleCampaigns.map(c => (
             <div key={c.id} className="attn-item">
               <div className="attn-icon" style={{ background: 'var(--info-tint)', color: 'var(--info)' }}><Icon name="reports" /></div>

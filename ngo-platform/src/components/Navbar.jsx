@@ -19,7 +19,7 @@ export default function Navbar({ userContext }) {
           
           {/* Logo */}
           <Link to="/" className={`flex items-center gap-2 text-2xl font-bold ${isHome ? 'text-white' : 'text-green-600'}`}>
-            <img src="/logo (2).jpg" alt="AidLink Logo" className="h-8 w-auto" />
+            <img src="/logo_Aidlink.png" alt="AidLink Logo" className="h-8 w-auto" />
             <span>AidLink</span>
           </Link>
 
@@ -48,15 +48,17 @@ export default function Navbar({ userContext }) {
               Explore Campaigns
             </a>
             
-            {/* NGO Directory Button */}
-            <button 
-              onClick={() => alert('Future Page: This will open a dedicated page displaying a searchable directory and profiles of all verified NGOs on the platform.')} 
+            {/* NGO Directory Link */}
+            <Link 
+              to="/directory" 
               className={`font-medium cursor-pointer transition-colors ${
-                isHome ? 'text-gray-200 hover:text-white' : 'text-gray-600 hover:text-green-600'
+                location.pathname === '/directory' || location.pathname === '/ngo-directory'
+                  ? 'text-green-600 font-semibold'
+                  : isHome ? 'text-gray-200 hover:text-white' : 'text-gray-600 hover:text-green-600'
               }`}
             >
               NGO Directory
-            </button>
+            </Link>
 
             
 

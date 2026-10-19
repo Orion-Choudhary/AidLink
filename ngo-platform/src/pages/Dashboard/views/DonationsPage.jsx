@@ -59,10 +59,7 @@ export default function DonationsPage({ campaigns = [], donations = [], onNavCam
       {/* 3 Metric Cards Breakdown */}
       <div className="grid grid-3" style={{ marginBottom: '22px' }}>
         <div className="card card-pad">
-          <div className="stat-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span>Total Recorded Funds</span>
-            <span className="faint"><Icon name="donations" /></span>
-          </div>
+          <div className="stat-label">Total Recorded Funds</div>
           <div className="stat-num">{fmtINR(totalAmount)}</div>
           <div className="faint" style={{ fontSize: '11.8px', marginTop: '3px' }}>
             {fullList.length} total contribution{fullList.length === 1 ? '' : 's'}
@@ -70,10 +67,7 @@ export default function DonationsPage({ campaigns = [], donations = [], onNavCam
         </div>
 
         <div className="card card-pad">
-          <div className="stat-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span>Campaign-Specific Aid</span>
-            <span className="faint"><Icon name="campaigns" /></span>
-          </div>
+          <div className="stat-label">Campaign-Specific Aid</div>
           <div className="stat-num">{fmtINR(campaignAmount)}</div>
           <div className="faint" style={{ fontSize: '11.8px', marginTop: '3px' }}>
             {campaignDonations.length} donation{campaignDonations.length === 1 ? '' : 's'} linked to campaigns
@@ -81,10 +75,7 @@ export default function DonationsPage({ campaigns = [], donations = [], onNavCam
         </div>
 
         <div className="card card-pad">
-          <div className="stat-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span>Direct NGO Contributions</span>
-            <span className="faint"><Icon name="org" /></span>
-          </div>
+          <div className="stat-label">Direct NGO Contributions</div>
           <div className="stat-num" style={{ color: 'var(--success)' }}>{fmtINR(directAmount)}</div>
           <div className="faint" style={{ fontSize: '11.8px', marginTop: '3px' }}>
             {directDonations.length} direct donation{directDonations.length === 1 ? '' : 's'} to organization
@@ -127,10 +118,9 @@ export default function DonationsPage({ campaigns = [], donations = [], onNavCam
 
       {/* Table Display */}
       {displayedList.length === 0 ? (
-        <div className="card card-pad" style={{ textAlign: 'center', padding: '40px 20px' }}>
-          <div className="faint" style={{ marginBottom: '8px' }}><Icon name="donations" /></div>
-          <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--ink)' }}>No donations found in this section</div>
-          <div className="faint" style={{ fontSize: '12.5px', marginTop: '4px' }}>
+        <div className="card empty">
+          <div className="empty-title">No donations found in this section</div>
+          <div className="empty-sub">
             {activeSection === 'direct'
               ? 'Direct contributions made by individuals to your NGO will appear here.'
               : activeSection === 'campaign'

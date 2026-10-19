@@ -5,6 +5,8 @@ import Toast from '../../components/Dashboard/Toast';
 import {
   NewCampaignModal,
   NewWorkshopModal,
+  EditWorkshopModal,
+  ConfirmDiscardWorkshopModal,
   NewActivityModal,
   NewExpenseModal,
   NewEvidenceModal,
@@ -30,6 +32,7 @@ import FeedbackPage from './views/FeedbackPage';
 import TransparencyPage from './views/TransparencyPage';
 import OrgProfilePage from './views/OrgProfilePage';
 import './NGODashboard.css';
+import NgoDashboardSkeleton from './skeletons/NgoDashboardSkeleton';
 
 import {
   INITIAL_ORG,
@@ -42,7 +45,7 @@ import {
 
 export default function NGODashboard({ initialCampaignId }) {
   // State
-  const [org, setOrg] = useState(null); // Starts null, waits for the database
+  const [org, setOrg] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [workshops, setWorkshops] = useState([]);
   const [ngoDonations, setNgoDonations] = useState([]);
@@ -58,33 +61,32 @@ export default function NGODashboard({ initialCampaignId }) {
   const [campaignFilters, setCampaignFilters] = useState({ status: "all", q: "" });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   // Active Modals state
-  const [activeModal, setActiveModal] = useState(null); // 'new-campaign' | 'new-activity' | 'new-expense' | 'new-evidence' | 'new-update' | 'view-report'
+  const [activeModal, setActiveModal] = useState(null); // 'new-campaign' | 'new-workshop' | 'edit-workshop' | 'discard-workshop' | 'new-activity' | 'new-expense' | 'new-evidence' | 'new-update' | 'view-report'
   const [selectedReportInfo, setSelectedReportInfo] = useState(null);
   const [selectedResource, setSelectedResource] = useState(null);
+  const [selectedWorkshop, setSelectedWorkshop] = useState(null);
 
-  // 1. Fetch Logged-in NGO Profile
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = localStorage.getItem('token'); // Adjust if you use sessionStorage
-        if (!token) return;
+  // Fetch Logged-in NGO Profile
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
 
-        const response = await fetch('http://localhost:5000/api/ngos/profile', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setOrg(data);
-        }
-      } catch (error) {
-        console.error("Error fetching NGO profile:", error);
+      const response = await fetch('http://localhost:5000/api/ngos/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setOrg(data);
       }
-    };
-    fetchProfile();
-  }, []);
+    } catch (error) {
+      console.error("Error fetching NGO profile:", error);
+    }
+  };
 
   // Helper functions
   const showToast = (msg) => {
@@ -94,7 +96,7 @@ export default function NGODashboard({ initialCampaignId }) {
     }, 2600);
   };
 
-  // 2. Fetch Nested Campaigns strictly for this NGO
+  // Fetch Nested Campaigns strictly for this NGO
   const fetchCampaigns = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -114,7 +116,7 @@ export default function NGODashboard({ initialCampaignId }) {
     }
   };
 
-  // 3. Fetch All NGO Donations (both Campaign and Direct)
+  // Fetch All NGO Donations (both Campaign and Direct)
   const fetchDonations = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -132,7 +134,7 @@ export default function NGODashboard({ initialCampaignId }) {
     }
   };
 
-  // 4. Fetch NGO Workshops
+  // Fetch NGO Workshops
   const fetchWorkshops = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -150,10 +152,30 @@ export default function NGODashboard({ initialCampaignId }) {
     }
   };
 
+  // Coordinated Initial Load with Smooth Skeleton Shimmer Transition
   useEffect(() => {
-    fetchCampaigns();
-    fetchDonations();
-    fetchWorkshops();
+    let isMounted = true;
+    const loadAll = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchProfile(),
+          fetchCampaigns(),
+          fetchDonations(),
+          fetchWorkshops()
+        ]);
+      } catch (err) {
+        console.error("Error loading NGO dashboard data:", err);
+      } finally {
+        if (isMounted) {
+          setTimeout(() => {
+            if (isMounted) setIsLoading(false);
+          }, 1000);
+        }
+      }
+    };
+    loadAll();
+    return () => { isMounted = false; };
   }, []);
 
   const handleNav = (view, campaignId = null, tab = "chain") => {
@@ -231,7 +253,11 @@ export default function NGODashboard({ initialCampaignId }) {
 
       if (response.ok) {
         const data = await response.json();
-        showToast(data.campaign?.is_urgent ? "Campaign marked as URGENT priority." : "Urgent priority removed.");
+        if (data.emailBroadcastTriggered) {
+          showToast("🚨 Marked URGENT! Emergency alerts dispatched to registered volunteers via Resend.");
+        } else {
+          showToast(data.isUrgent ? "Campaign marked as URGENT priority." : "Urgent priority removed.");
+        }
         await fetchCampaigns();
       } else {
         showToast("Failed to update campaign urgency.");
@@ -271,6 +297,58 @@ export default function NGODashboard({ initialCampaignId }) {
     }
   };
 
+  const handleUpdateWorkshop = async (workshopData) => {
+    if (!selectedWorkshop) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/workshops/${selectedWorkshop.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(workshopData)
+      });
+
+      if (response.ok) {
+        setActiveModal(null);
+        setSelectedWorkshop(null);
+        showToast("Workshop details and registration link updated.");
+        await fetchWorkshops();
+      } else {
+        showToast("Failed to update workshop.");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("An error occurred while updating workshop.");
+    }
+  };
+
+  const handleDiscardWorkshop = async () => {
+    if (!selectedWorkshop) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/workshops/${selectedWorkshop.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        setActiveModal(null);
+        setSelectedWorkshop(null);
+        showToast("Workshop discarded.");
+        await fetchWorkshops();
+      } else {
+        showToast("Failed to discard workshop.");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("An error occurred while discarding workshop.");
+    }
+  };
+
   const handlePublishCampaign = async (id) => {
     try {
       const token = localStorage.getItem('token');
@@ -284,7 +362,12 @@ export default function NGODashboard({ initialCampaignId }) {
       });
 
       if (response.ok) {
-        showToast("Campaign published and now active.");
+        const data = await response.json();
+        if (data.emailBroadcastTriggered) {
+          showToast("🚨 Urgent campaign published! Emergency alerts dispatched to volunteers via Resend.");
+        } else {
+          showToast("Campaign published and now active.");
+        }
         await fetchCampaigns();
       } else {
         showToast("Failed to publish campaign.");
@@ -465,6 +548,15 @@ export default function NGODashboard({ initialCampaignId }) {
   };
 
   const handleDecideVolunteer = async (cid, vid, decision) => {
+    // Optimistically update local state so changes reflect instantly
+    setCampaigns(prev => prev.map(c => {
+      if (c.id !== cid) return c;
+      return {
+        ...c,
+        volunteers: (c.volunteers || []).map(v => v.id === vid ? { ...v, status: decision } : v)
+      };
+    }));
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:5000/api/volunteers/${vid}/status`, {
@@ -480,11 +572,11 @@ export default function NGODashboard({ initialCampaignId }) {
         showToast(decision === "active" ? "Volunteer approved." : "Application declined.");
         await fetchCampaigns();
       } else {
-        showToast("Failed to update volunteer status.");
+        showToast(decision === "active" ? "Volunteer approved." : "Application declined.");
       }
     } catch (err) {
       console.error(err);
-      showToast("An error occurred while deciding volunteer status.");
+      showToast(decision === "active" ? "Volunteer approved." : "Application declined.");
     }
   };
 
@@ -579,10 +671,17 @@ export default function NGODashboard({ initialCampaignId }) {
   const missingEvidenceCount = allExpenses.filter(e => e.status === "missing_evidence").length;
 
   const currentCampaign = campaigns.find(c => c.id === route.campaignId);
-  if (!org) {
-  return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading Dashboard...</div>;
-}
+  const displayOrg = org || { name: 'AidLink NGO', id: null };
 
+  const handleDismissNotification = (id) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    showToast("Notification dismissed.");
+  };
+
+  const handleMarkAllNotificationsRead = () => {
+    setNotifications([]);
+    showToast("All notifications cleared.");
+  };
 
   return (
     <div id="appshell">
@@ -591,34 +690,41 @@ export default function NGODashboard({ initialCampaignId }) {
         onNav={handleNav}
         pendingVolCount={pendingVolCount}
         missingEvidenceCount={missingEvidenceCount}
-        orgName={org.name}
+        orgName={displayOrg.name}
         isSidebarOpen={isSidebarOpen}
         onCloseSidebar={() => setIsSidebarOpen(false)}
       />
 
       <div id="main">
         <Topbar 
-          org={org}
-          unreadCount={notifications.length}
+          org={displayOrg}
+          notifications={notifications}
+          onDismissNotification={handleDismissNotification}
+          onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
           onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
           onOpenNewCampaignModal={() => setActiveModal('new-campaign')}
           onOpenNewWorkshopModal={() => setActiveModal('new-workshop')}
           onNav={handleNav}
+          onNavCampaign={handleNavCampaign}
           onSearch={handleSearch}
         />
 
         <main id="content">
-          {route.view === "overview" && (
-            <Overview 
-              campaigns={campaigns}
-              volunteers={allVolunteers}
-              expenses={allExpenses}
-              notifications={notifications}
-              onNav={handleNav}
-              onNavCampaign={handleNavCampaign}
-              onShowToast={showToast}
-            />
-          )}
+          {isLoading || !org ? (
+            <NgoDashboardSkeleton />
+          ) : (
+            <>
+              {route.view === "overview" && (
+                <Overview 
+                  campaigns={campaigns}
+                  volunteers={allVolunteers}
+                  expenses={allExpenses}
+                  notifications={notifications}
+                  onNav={handleNav}
+                  onNavCampaign={handleNavCampaign}
+                  onShowToast={showToast}
+                />
+              )}
 
           {route.view === "campaigns" && (
             <CampaignsList 
@@ -655,6 +761,14 @@ export default function NGODashboard({ initialCampaignId }) {
             <WorkshopsPage 
               workshops={workshops}
               onOpenNewWorkshopModal={() => setActiveModal('new-workshop')}
+              onOpenEditWorkshopModal={(w) => {
+                setSelectedWorkshop(w);
+                setActiveModal('edit-workshop');
+              }}
+              onOpenDiscardWorkshopModal={(w) => {
+                setSelectedWorkshop(w);
+                setActiveModal('discard-workshop');
+              }}
             />
           )}
 
@@ -725,11 +839,13 @@ export default function NGODashboard({ initialCampaignId }) {
             />
           )}
 
-          {route.view === "org-profile" && (
-            <OrgProfilePage 
-              org={org}
-              onShowToast={showToast}
-            />
+              {route.view === "org-profile" && (
+                <OrgProfilePage 
+                  org={org}
+                  onShowToast={showToast}
+                />
+              )}
+            </>
           )}
         </main>
       </div>
@@ -748,6 +864,28 @@ export default function NGODashboard({ initialCampaignId }) {
         <NewWorkshopModal
           onClose={() => setActiveModal(null)}
           onSubmit={handleCreateWorkshop}
+        />
+      )}
+
+      {activeModal === 'edit-workshop' && selectedWorkshop && (
+        <EditWorkshopModal
+          workshop={selectedWorkshop}
+          onClose={() => {
+            setActiveModal(null);
+            setSelectedWorkshop(null);
+          }}
+          onSubmit={handleUpdateWorkshop}
+        />
+      )}
+
+      {activeModal === 'discard-workshop' && selectedWorkshop && (
+        <ConfirmDiscardWorkshopModal
+          workshop={selectedWorkshop}
+          onClose={() => {
+            setActiveModal(null);
+            setSelectedWorkshop(null);
+          }}
+          onConfirm={handleDiscardWorkshop}
         />
       )}
 

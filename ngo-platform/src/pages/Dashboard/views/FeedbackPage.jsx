@@ -50,7 +50,7 @@ export default function FeedbackPage({ feedbackList, campaigns }) {
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '13.4px' }}>{f.name} <span className="faint" style={{ fontWeight: 400 }}>— {f.source}</span></div>
                   <div className="faint" style={{ fontSize: '11.8px' }}>
-                    {c.name} · {fmtDate(f.date)} <span className="badge badge-success" style={{ marginLeft: '6px' }}><Icon name="check" /> Verified interaction</span>
+                    {c.name} · {fmtDate(f.date)} <span className="badge badge-success" style={{ marginLeft: '6px' }}><span className="badge-dot"></span> Verified interaction</span>
                   </div>
                 </div>
               </div>

@@ -12,7 +12,6 @@ const CAMPAIGN_TABS = [
   { id: "expenses", label: "Expenses" },
   { id: "evidence", label: "Evidence" },
   { id: "updates", label: "Updates" },
-  { id: "beneficiaries", label: "Beneficiaries" },
   { id: "impact", label: "Impact Report" },
   { id: "audit", label: "Audit History" },
 ];
@@ -39,7 +38,6 @@ export default function CampaignDetail({
   if (!campaign) {
     return (
       <div className="empty">
-        <Icon name="alert" />
         <div className="empty-title">Campaign not found</div>
         <button className="btn btn-secondary" style={{ marginTop: '10px' }} onClick={() => onNav('campaigns')}>
           Return to campaigns
@@ -50,8 +48,8 @@ export default function CampaignDetail({
 
   const currentTab = activeTab || "chain";
 
-  const totalDonations = campaign.donations.reduce((s, d) => s + d.amount, 0);
-  const totalExpenses = campaign.expenses.reduce((s, e) => s + e.amount, 0);
+  const totalDonations = (campaign.donations || []).reduce((s, d) => s + (Number(d.amount) || 0), 0);
+  const totalExpenses = (campaign.expenses || []).reduce((s, e) => s + (Number(e.amount) || 0), 0);
   const isUrgent = Boolean(campaign.is_urgent || campaign.isUrgent);
 
   return (
@@ -71,25 +69,24 @@ export default function CampaignDetail({
             type="button"
             className="btn btn-sm"
             style={{ 
-              background: isUrgent ? '#dc2626' : 'var(--bg-subtle)',
+              background: isUrgent ? 'var(--danger)' : 'var(--surface)',
               color: isUrgent ? '#ffffff' : 'var(--ink)',
-              border: `1px solid ${isUrgent ? '#b91c1c' : 'var(--border)'}`,
+              border: `1px solid ${isUrgent ? 'var(--danger)' : 'var(--border-strong)'}`,
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '5px',
               fontWeight: 600,
               cursor: 'pointer'
             }}
             onClick={() => onToggleUrgent && onToggleUrgent(campaign.id, isUrgent)}
             title="Toggle urgent priority in supporter feeds"
           >
-            ⚡ {isUrgent ? 'URGENT PRIORITY' : 'Mark Urgent'}
+            {isUrgent ? 'Urgent Priority' : 'Mark Urgent'}
           </button>
           <StatusBadge status={campaign.status} />
           {campaign.status !== "draft" && <StatusBadge status={campaign.health} />}
           {campaign.status === "draft" && (
-            <button className="btn btn-primary btn-sm" onClick={() => onPublishCampaign(campaign.id)}>
-              <Icon name="check" /> Publish campaign
+            <button className="btn btn-primary" onClick={() => onPublishCampaign(campaign.id)}>
+              Publish campaign
             </button>
           )}
         </div>
@@ -142,7 +139,7 @@ export default function CampaignDetail({
 
           <div className="grid grid-2" style={{ alignItems: 'start' }}>
             <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: '10px' }}><Icon name="target" /> Objective</div>
+              <div className="card-title" style={{ marginBottom: '10px' }}>Objective</div>
               <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: 'var(--ink-soft)' }}>{campaign.objective}</p>
               <div className="divider"></div>
               <div className="progress-row" style={{ marginBottom: '6px' }}>
@@ -153,7 +150,7 @@ export default function CampaignDetail({
             </div>
 
             <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: '10px' }}><Icon name="donations" /> Financial summary</div>
+              <div className="card-title" style={{ marginBottom: '10px' }}>Financial summary</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
                 <span className="muted" style={{ fontSize: '13px' }}>Simulated donations received</span>
                 <span className="mono" style={{ fontWeight: 600 }}>{fmtINR(totalDonations)}</span>
@@ -176,7 +173,7 @@ export default function CampaignDetail({
 
           {campaign.updates.length > 0 && (
             <div className="card card-pad" style={{ marginTop: '16px' }}>
-              <div className="card-title" style={{ marginBottom: '12px' }}><Icon name="reports" /> Latest progress update</div>
+              <div className="card-title" style={{ marginBottom: '12px' }}>Latest progress update</div>
               <div className="tl-when">{fmtDate(campaign.updates[0].date)}</div>
               <div className="tl-title" style={{ fontSize: '14.5px', margin: '3px 0 6px' }}>{campaign.updates[0].title}</div>
               <div className="tl-body">{campaign.updates[0].body}</div>
@@ -189,14 +186,13 @@ export default function CampaignDetail({
       {currentTab === "activities" && (
         <div>
           <div className="section-title-row">
-            <div className="card-title"><Icon name="activities" /> Relief activities &amp; schedule</div>
+            <div className="card-title">Relief activities &amp; schedule</div>
             <button className="btn btn-primary btn-sm" onClick={onOpenNewActivityModal}>
               <Icon name="plus" /> Schedule activity
             </button>
           </div>
           {campaign.activities.length === 0 ? (
             <div className="empty">
-              <Icon name="activities" />
               <div className="empty-title">No activities yet</div>
               <div className="empty-sub">Schedule the first relief activity for this campaign — distributions, health camps, WASH works and more.</div>
             </div>
@@ -231,12 +227,12 @@ export default function CampaignDetail({
       {currentTab === "volunteers" && (
         <div>
           <div className="section-title-row">
-            <div className="card-title"><Icon name="volunteers" /> Volunteer applications &amp; participation</div>
+            <div className="card-title">Volunteer applications &amp; participation</div>
           </div>
           {campaign.volunteers.filter(v => (v.status || '').toLowerCase() === "pending" || v.status === "APPLIED").length > 0 && (
             <div className="card card-pad" style={{ marginBottom: '16px' }}>
               <div className="card-title" style={{ marginBottom: '10px', color: 'var(--warn)' }}>
-                <Icon name="clock" /> Awaiting review ({campaign.volunteers.filter(v => (v.status || '').toLowerCase() === "pending" || v.status === "APPLIED").length})
+                Awaiting review ({campaign.volunteers.filter(v => (v.status || '').toLowerCase() === "pending" || v.status === "APPLIED").length})
               </div>
               {campaign.volunteers.filter(v => (v.status || '').toLowerCase() === "pending" || v.status === "APPLIED").map(v => {
                 const docPath = v.document_path || v.documentPath;
@@ -264,10 +260,10 @@ export default function CampaignDetail({
                     </div>
                     <div className="attn-action" style={{ display: 'flex', gap: '6px' }}>
                       <button className="btn btn-secondary btn-sm" onClick={() => onDecideVolunteer(campaign.id, v.id, 'rejected')}>
-                        <Icon name="x" /> Decline
+                        Decline
                       </button>
                       <button className="btn btn-primary btn-sm" onClick={() => onDecideVolunteer(campaign.id, v.id, 'active')}>
-                        <Icon name="check" /> Approve
+                        Approve
                       </button>
                     </div>
                   </div>
@@ -324,14 +320,13 @@ export default function CampaignDetail({
       {currentTab === "resources" && (
         <div>
           <div className="section-title-row">
-            <div className="card-title"><Icon name="resources" /> Resources &amp; allocation</div>
+            <div className="card-title">Resources &amp; allocation</div>
             <button className="btn btn-primary btn-sm" onClick={onOpenNewResourceModal}>
               <Icon name="plus" /> Add resource line
             </button>
           </div>
           {campaign.resources.length === 0 ? (
             <div className="empty">
-              <Icon name="resources" />
               <div className="empty-title">No resources allocated yet</div>
               <div className="empty-sub">Resource lines — relief kits, materials, equipment — will appear here once allocated.</div>
             </div>
@@ -379,7 +374,7 @@ export default function CampaignDetail({
       {currentTab === "donations" && (
         <div>
           <div className="section-title-row">
-            <div className="card-title"><Icon name="donations" /> Donations (simulated)</div>
+            <div className="card-title">Donations (simulated)</div>
             <div className="mono" style={{ fontWeight: 700, fontSize: '14px' }}>{fmtINR(totalDonations)} total</div>
           </div>
           <div className="notice notice-info" style={{ marginBottom: '14px' }}>
@@ -391,7 +386,6 @@ export default function CampaignDetail({
           </div>
           {campaign.donations.length === 0 ? (
             <div className="empty">
-              <Icon name="donations" />
               <div className="empty-title">No donations recorded yet</div>
               <div className="empty-sub">Simulated donation records will appear here as they are logged.</div>
             </div>
@@ -422,7 +416,7 @@ export default function CampaignDetail({
       {currentTab === "expenses" && (
         <div>
           <div className="section-title-row">
-            <div className="card-title"><Icon name="expenses" /> Declared expenses</div>
+            <div className="card-title">Declared expenses</div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <div className="mono" style={{ fontWeight: 700, fontSize: '14px' }}>{fmtINR(totalExpenses)} total</div>
               <button className="btn btn-primary btn-sm" onClick={onOpenNewExpenseModal}>
@@ -439,7 +433,6 @@ export default function CampaignDetail({
           </div>
           {campaign.expenses.length === 0 ? (
             <div className="empty">
-              <Icon name="expenses" />
               <div className="empty-title">No expenses declared yet</div>
               <div className="empty-sub">Declared expenses with supporting evidence will appear here.</div>
             </div>
@@ -461,7 +454,7 @@ export default function CampaignDetail({
                       <td className="mono">{fmtDate(e.date)}</td>
                       <td>
                         {e.evidenceLinked ? (
-                          <span className="badge badge-success"><Icon name="check" /> Linked</span>
+                          <span className="badge badge-success"><span className="badge-dot"></span> Linked</span>
                         ) : (
                           <button className="btn btn-secondary btn-sm" onClick={() => onTabChange('evidence')}>
                             <Icon name="upload" /> Attach
@@ -482,7 +475,7 @@ export default function CampaignDetail({
       {currentTab === "evidence" && (
         <div>
           <div className="section-title-row">
-            <div className="card-title"><Icon name="evidence" /> Supporting evidence</div>
+            <div className="card-title">Supporting evidence</div>
             <button className="btn btn-primary btn-sm" onClick={onOpenNewEvidenceModal}>
               <Icon name="upload" /> Upload evidence
             </button>
@@ -496,7 +489,6 @@ export default function CampaignDetail({
           </div>
           {campaign.evidence.length === 0 ? (
             <div className="empty">
-              <Icon name="evidence" />
               <div className="empty-title">No evidence uploaded yet</div>
               <div className="empty-sub">Photos, documents and registers that support activities and expenses will appear here.</div>
             </div>
@@ -530,14 +522,13 @@ export default function CampaignDetail({
       {currentTab === "updates" && (
         <div>
           <div className="section-title-row">
-            <div className="card-title"><Icon name="reports" /> Progress updates</div>
+            <div className="card-title">Progress updates</div>
             <button className="btn btn-primary btn-sm" onClick={onOpenNewUpdateModal}>
               <Icon name="plus" /> Publish update
             </button>
           </div>
           {campaign.updates.length === 0 ? (
             <div className="empty">
-              <Icon name="reports" />
               <div className="empty-title">No updates published yet</div>
               <div className="empty-sub">Structured progress updates keep stakeholders informed as the campaign advances.</div>
             </div>
@@ -558,102 +549,17 @@ export default function CampaignDetail({
         </div>
       )}
 
-      {/* Beneficiaries Tab */}
-      {currentTab === "beneficiaries" && (
-        <div>
-          <div className="section-title-row">
-            <div className="card-title"><Icon name="beneficiaries" /> Reported beneficiaries</div>
-            <button className="btn btn-primary btn-sm" onClick={onOpenUpdateBeneficiariesModal}>
-              <Icon name="plus" /> Update data
-            </button>
-          </div>
-          <div className="notice notice-info" style={{ marginBottom: '16px' }}>
-            <Icon name="shield" />
-            <div>
-              <div className="notice-title">Aggregate &amp; non-identifying</div>
-              <div className="notice-body">Beneficiary figures are reported in aggregate by field teams and camp or panchayat committees. Sahaaksh does not collect or display individually identifying beneficiary information.</div>
-            </div>
-          </div>
-          <div className="grid grid-3" style={{ marginBottom: '16px' }}>
-            <div className="card card-pad">
-              <div className="stat-label">Households reached</div>
-              <div className="stat-num" style={{ fontSize: '22px' }}>{campaign.beneficiaries.householdsReached.toLocaleString("en-IN")}</div>
-              <div className="faint" style={{ fontSize: '11.8px', marginTop: '3px' }}>of {campaign.targetHouseholds.toLocaleString("en-IN")} targeted</div>
-            </div>
-            <div className="card card-pad">
-              <div className="stat-label">Individuals reached (est.)</div>
-              <div className="stat-num" style={{ fontSize: '22px' }}>{campaign.beneficiaries.individualsReached.toLocaleString("en-IN")}</div>
-              <div className="faint" style={{ fontSize: '11.8px', marginTop: '3px' }}>based on average household size</div>
-            </div>
-            <div className="card card-pad">
-              <div className="stat-label">Districts covered</div>
-              <div className="stat-num" style={{ fontSize: '22px' }}>{campaign.beneficiaries.districts.length}</div>
-              <div className="faint" style={{ fontSize: '11.8px', marginTop: '3px' }}>
-                {campaign.beneficiaries.districts.map(d => d.name).join(", ") || "—"}
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-2">
-            <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: '12px' }}>Reach by district</div>
-              {campaign.beneficiaries.districts.length === 0 ? (
-                <div className="empty"><Icon name="map" /><div className="empty-title">No district data yet</div></div>
-              ) : (
-                campaign.beneficiaries.districts.map(d => {
-                  const pct = Math.round((d.households / campaign.beneficiaries.householdsReached) * 100) || 0;
-                  return (
-                    <div key={d.name} style={{ marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.8px', marginBottom: '4px' }}>
-                        <span>{d.name}</span>
-                        <span className="mono faint">{d.households.toLocaleString("en-IN")} households</span>
-                      </div>
-                      <div className="progress-track"><div className="progress-fill" style={{ width: `${pct}%` }}></div></div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-            <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: '12px' }}>Composition &amp; coverage</div>
-              <div style={{ fontSize: '12.5px', color: 'var(--ink-soft)', marginBottom: '8px' }}>Gender split (self-reported)</div>
-              <div style={{ display: 'flex', height: '10px', borderRadius: '20px', overflow: 'hidden', marginBottom: '14px' }}>
-                <div style={{ width: `${campaign.beneficiaries.genderSplit.female}%`, background: 'var(--accent)' }}></div>
-                <div style={{ width: `${campaign.beneficiaries.genderSplit.male}%`, background: 'var(--gold)' }}></div>
-                <div style={{ width: `${campaign.beneficiaries.genderSplit.other}%`, background: 'var(--ink-faint)' }}></div>
-              </div>
-              <div style={{ display: 'flex', gap: '14px', fontSize: '11.8px', marginBottom: '16px' }} className="faint">
-                <span>● Women {campaign.beneficiaries.genderSplit.female}%</span>
-                <span>● Men {campaign.beneficiaries.genderSplit.male}%</span>
-                <span>● Other {campaign.beneficiaries.genderSplit.other}%</span>
-              </div>
-              <div style={{ fontSize: '12.5px', color: 'var(--ink-soft)', marginBottom: '8px' }}>Vulnerable groups prioritised</div>
-              <div className="pillrow">
-                {campaign.beneficiaries.vulnerableGroupsCovered.length > 0 ? (
-                  campaign.beneficiaries.vulnerableGroupsCovered.map(v => (
-                    <span key={v} className="badge badge-neutral">{v}</span>
-                  ))
-                ) : (
-                  <span className="faint" style={{ fontSize: '12.5px' }}>None recorded yet</span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="disclaimer" style={{ marginTop: '14px' }}>{campaign.beneficiaries.note}</div>
-        </div>
-      )}
-
       {/* Impact Report Tab */}
       {currentTab === "impact" && (
         <div>
           <div className="section-title-row">
-            <div className="card-title"><Icon name="reports" /> Campaign impact report</div>
+            <div className="card-title">Campaign impact report</div>
             <button className="btn btn-primary btn-sm" onClick={() => onGenerateImpactReport(campaign.id)}>
               <Icon name="plus" /> Generate &amp; publish report
             </button>
           </div>
           {campaign.impactReports.filter(r => r.status === "published").length === 0 ? (
             <div className="empty">
-              <Icon name="reports" />
               <div className="empty-title">No impact report published yet</div>
               <div className="empty-sub">Generate a structured report that pulls together objective, resources, activities, evidence and reported impact.</div>
             </div>
@@ -685,7 +591,7 @@ export default function CampaignDetail({
       {currentTab === "audit" && (
         <div>
           <div className="section-title-row">
-            <div className="card-title"><Icon name="history" /> Auditable action history</div>
+            <div className="card-title">Auditable action history</div>
           </div>
           <div className="card card-pad">
             <div className="timeline">

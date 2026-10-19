@@ -35,7 +35,7 @@ export default function OrgProfilePage({ org = {}, onShowToast }) {
           <div className="page-sub">Registration, verification status and team details for {orgName}.</div>
         </div>
         <button className="btn btn-secondary" onClick={() => onShowToast && onShowToast('Profile details updated from official registration records.')}>
-          <Icon name="check" /> Verified Status
+          Verified Status
         </button>
       </div>
 
@@ -68,7 +68,7 @@ export default function OrgProfilePage({ org = {}, onShowToast }) {
         </div>
 
         <div className="card card-pad">
-          <div className="card-title" style={{ marginBottom: '6px' }}><Icon name="shield" /> Platform verification</div>
+          <div className="card-title" style={{ marginBottom: '6px' }}>Platform verification</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px' }}>
             <StatusBadge status={org?.verification_status || "verified"} /> 
             <span className="faint" style={{ fontSize: '12px' }}>Completed {fmtDate(completedDate)}</span>
@@ -90,7 +90,7 @@ export default function OrgProfilePage({ org = {}, onShowToast }) {
 
       <div className="grid grid-2" style={{ alignItems: 'start' }}>
         <div className="card card-pad">
-          <div className="card-title" style={{ marginBottom: '12px' }}><Icon name="users" /> Leadership &amp; Team</div>
+          <div className="card-title" style={{ marginBottom: '12px' }}>Leadership &amp; Team</div>
           {team.map((t, idx) => (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
               <div className="avatar-sm" style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-tint)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '12px' }}>
@@ -105,7 +105,7 @@ export default function OrgProfilePage({ org = {}, onShowToast }) {
         </div>
 
         <div className="card card-pad">
-          <div className="card-title" style={{ marginBottom: '12px' }}><Icon name="file" /> Registration &amp; Compliance Documents</div>
+          <div className="card-title" style={{ marginBottom: '12px' }}>Registration &amp; Compliance Documents</div>
           {docs.map((d, idx) => (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>

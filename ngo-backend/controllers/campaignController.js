@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { sendUrgentCampaignAlert } = require('../services/emailService');
 
 // Helper for audit logs
 const logAudit = async (campaignId, actor, action, detail) => {
@@ -9,6 +10,65 @@ const logAudit = async (campaignId, actor, action, detail) => {
     );
   } catch(e) {
     console.error("Audit log failed", e);
+  }
+};
+
+/**
+ * Dispatch emergency broadcast emails to registered volunteers via Resend
+ * when an urgent campaign becomes active.
+ */
+const notifyVolunteersIfUrgent = async (campaignId, ngoId) => {
+  try {
+    const campRes = await pool.query('SELECT * FROM campaigns WHERE id = $1', [campaignId]);
+    if (campRes.rows.length === 0) return { success: false, reason: 'not_found' };
+    const campaign = campRes.rows[0];
+
+    // Verify it is active and marked urgent
+    if (campaign.status !== 'active' || !campaign.is_urgent) {
+      console.log(`[Urgent Alert] Campaign #${campaignId} is not active+urgent (status: ${campaign.status}, urgent: ${campaign.is_urgent}). Skipping alert.`);
+      return { success: false, reason: 'not_urgent_or_active' };
+    }
+
+    // Get NGO organization name
+    let ngoName = 'AidLink Partner NGO';
+    const finalNgoId = ngoId || campaign.ngo_id;
+    if (finalNgoId) {
+      const ngoRes = await pool.query('SELECT org_name FROM ngos WHERE id = $1', [finalNgoId]);
+      if (ngoRes.rows.length > 0 && ngoRes.rows[0].org_name) {
+        ngoName = ngoRes.rows[0].org_name;
+      }
+    }
+
+    // Query registered volunteers
+    // Filter supporters who registered for volunteering, or fallback to all registered supporters
+    let volunteersRes = await pool.query(
+      `SELECT id, full_name, email FROM supporters WHERE 'volunteering' = ANY(help_types)`
+    );
+
+    if (volunteersRes.rows.length === 0) {
+      volunteersRes = await pool.query(
+        `SELECT id, full_name, email FROM supporters`
+      );
+    }
+
+    console.log(`🚨 [Urgent Alert] Dispatching broadcast to ${volunteersRes.rows.length} volunteer(s) for campaign: "${campaign.name}"`);
+
+    const dispatchResult = await sendUrgentCampaignAlert({
+      campaign,
+      volunteers: volunteersRes.rows,
+      ngoName
+    });
+
+    const auditDetail = dispatchResult.total > 0
+      ? `Dispatched emergency email alert to ${dispatchResult.sent}/${dispatchResult.total} registered volunteer(s) via Resend`
+      : 'No registered volunteers found in database to alert';
+
+    await logAudit(campaignId, 'System (Resend)', 'Emergency Alerts Dispatched', auditDetail);
+
+    return dispatchResult;
+  } catch (err) {
+    console.error('❌ [Urgent Alert] Exception in notifyVolunteersIfUrgent:', err);
+    return { success: false, error: err.message };
   }
 };
 
@@ -93,9 +153,18 @@ exports.toggleCampaignUrgent = async (req, res) => {
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
     await logAudit(id, 'You', 'Updated Urgency Priority', is_urgent ? 'Marked as High Priority / Urgent' : 'Standard Priority');
+
+    let emailBroadcastTriggered = false;
+    // If marked urgent while the campaign is already active, trigger email broadcast to volunteers
+    if (Boolean(is_urgent) && result.rows[0].status === 'active') {
+      emailBroadcastTriggered = true;
+      notifyVolunteersIfUrgent(id, req.user.id);
+    }
+
     res.json({
       ...result.rows[0],
-      isUrgent: Boolean(result.rows[0].is_urgent)
+      isUrgent: Boolean(result.rows[0].is_urgent),
+      emailBroadcastTriggered
     });
   } catch (err) {
     console.error('Error updating campaign urgency:', err.message);
@@ -118,12 +187,39 @@ exports.updateCampaignStatus = async (req, res) => {
     }
     const result = await pool.query(query, values);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
-    res.json(result.rows[0]);
+
+    let emailBroadcastTriggered = false;
+    // If published (active) and marked urgent, trigger email broadcast to volunteers
+    if (status === 'active' && Boolean(result.rows[0].is_urgent)) {
+      emailBroadcastTriggered = true;
+      notifyVolunteersIfUrgent(id, req.user?.id);
+    }
+
+    res.json({
+      ...result.rows[0],
+      isUrgent: Boolean(result.rows[0].is_urgent),
+      emailBroadcastTriggered
+    });
   } catch (err) {
     console.error('Error updating campaign status:', err.message);
     res.status(500).send('Server Error');
   }
 };
+
+exports.testUrgentAlertDispatch = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const dispatchResult = await notifyVolunteersIfUrgent(id, req.user?.id);
+    res.json({
+      message: 'Urgent alert dispatch processed',
+      dispatchResult
+    });
+  } catch (err) {
+    console.error('Error testing urgent alert dispatch:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 exports.addActivity = async (req, res) => {
   const { id } = req.params;

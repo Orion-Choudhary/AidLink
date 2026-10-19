@@ -5,9 +5,10 @@ const pool = require('../config/db');
 const registerSupporter = async (req, res) => {
   try {
     const { fullName, email, password, aadhaarId, city, state, helpTypes } = req.body;
+    const cleanEmail = email ? email.trim() : '';
     const userCheck = await pool.query(
-      'SELECT * FROM supporters WHERE email = $1 OR aadhaar_id = $2',
-      [email, aadhaarId]
+      'SELECT * FROM supporters WHERE LOWER(email) = LOWER($1) OR aadhaar_id = $2',
+      [cleanEmail, aadhaarId]
     );
 
     if (userCheck.rows.length > 0) {
@@ -20,7 +21,7 @@ const registerSupporter = async (req, res) => {
       `INSERT INTO supporters (full_name, email, password_hash, aadhaar_id, city, state, help_types) 
        VALUES ($1, $2, $3, $4, $5, $6, $7) 
        RETURNING id, full_name, email, role`,
-      [fullName, email, passwordHash, aadhaarId, city, state, helpTypes]
+      [fullName, cleanEmail, passwordHash, aadhaarId, city, state, helpTypes]
     );
 
     res.status(201).json({
@@ -36,6 +37,7 @@ const registerSupporter = async (req, res) => {
 const registerNgo = async (req, res) => {
   try {
     const { orgName, contactName, email, password, darpanId } = req.body;
+    const cleanEmail = email ? email.trim() : '';
     const certFile = req.files?.['registrationCertificate']?.[0];
     const docFile = req.files?.['supportingDocument']?.[0];
 
@@ -44,8 +46,8 @@ const registerNgo = async (req, res) => {
     }
 
     const ngoCheck = await pool.query(
-      'SELECT * FROM ngos WHERE email = $1 OR darpan_id = $2', 
-      [email, darpanId]
+      'SELECT * FROM ngos WHERE LOWER(email) = LOWER($1) OR darpan_id = $2', 
+      [cleanEmail, darpanId]
     );
     
     if (ngoCheck.rows.length > 0) {
@@ -64,7 +66,7 @@ const registerNgo = async (req, res) => {
     const values = [
       orgName, 
       contactName, 
-      email, 
+      cleanEmail, 
       passwordHash, 
       darpanId, 
       certFile.path.replace(/\\/g, '/'), // Forces forward slashes
@@ -86,12 +88,18 @@ const registerNgo = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    let userQuery = await pool.query('SELECT * FROM supporters WHERE email = $1', [email]);
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required.' });
+    }
+
+    const cleanEmail = email.trim();
+
+    let userQuery = await pool.query('SELECT * FROM supporters WHERE LOWER(email) = LOWER($1)', [cleanEmail]);
     let role = 'SUPPORTER';
     let status = 'APPROVED'; 
 
     if (userQuery.rows.length === 0) {
-      userQuery = await pool.query('SELECT * FROM ngos WHERE email = $1', [email]);
+      userQuery = await pool.query('SELECT * FROM ngos WHERE LOWER(email) = LOWER($1)', [cleanEmail]);
       role = 'NGO';
       if (userQuery.rows.length > 0) {
         status = userQuery.rows[0].verification_status;

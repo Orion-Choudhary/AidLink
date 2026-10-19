@@ -80,19 +80,13 @@ export default function Overview({ campaigns, volunteers, expenses, notification
 
       <div className="grid grid-4" style={{ marginBottom: '18px' }}>
         <div className="card card-pad">
-          <div className="stat-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span>Active campaigns</span>
-            <span className="faint"><Icon name="campaigns" /></span>
-          </div>
+          <div className="stat-label">Active campaigns</div>
           <div className="stat-num">{activeCampaigns.length}</div>
           <div className="faint" style={{ fontSize: '11.8px', marginTop: '3px' }}>{draftCampaigns.length} in draft</div>
         </div>
 
         <div className="card card-pad">
-          <div className="stat-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span>Households reached</span>
-            <span className="faint"><Icon name="users" /></span>
-          </div>
+          <div className="stat-label">Households reached</div>
           <div className="stat-num">{totalHouseholds.toLocaleString("en-IN")}</div>
           <div className="faint" style={{ fontSize: '11.8px', marginTop: '3px' }}>across active campaigns</div>
         </div>
@@ -121,11 +115,10 @@ export default function Overview({ campaigns, volunteers, expenses, notification
       <div className="grid grid-2" style={{ alignItems: 'start' }}>
         <div className="card card-pad">
           <div className="section-title-row">
-            <div className="card-title"><Icon name="alert" /> Needs your attention</div>
+            <div className="card-title">Needs your attention</div>
           </div>
           {attentionItems.length === 0 ? (
             <div className="empty">
-              <Icon name="check" />
               <div className="empty-title">Nothing needs attention right now</div>
               <div className="empty-sub">New volunteer applications, evidence gaps and overdue updates will show up here.</div>
             </div>
@@ -153,7 +146,7 @@ export default function Overview({ campaigns, volunteers, expenses, notification
 
         <div className="card card-pad">
           <div className="section-title-row">
-            <div className="card-title"><Icon name="campaigns" /> Active campaign health</div>
+            <div className="card-title">Active campaign health</div>
             <span className="link-all" onClick={() => onNav('campaigns')}>View all</span>
           </div>
           {activeCampaigns.map(c => (
@@ -188,12 +181,11 @@ export default function Overview({ campaigns, volunteers, expenses, notification
       <div className="grid grid-2" style={{ alignItems: 'start', marginTop: '16px' }}>
         <div className="card card-pad">
           <div className="section-title-row">
-            <div className="card-title"><Icon name="calendar" /> Upcoming &amp; in-progress activities</div>
+            <div className="card-title">Upcoming &amp; in-progress activities</div>
             <span className="link-all" onClick={() => onNav('activities')}>View all</span>
           </div>
           {upcomingActivities.length === 0 ? (
             <div className="empty">
-              <Icon name="clock" />
               <div className="empty-title">No upcoming activities</div>
               <div className="empty-sub">Scheduled or in-progress activities across campaigns will appear here.</div>
             </div>
@@ -217,7 +209,7 @@ export default function Overview({ campaigns, volunteers, expenses, notification
 
         <div className="card card-pad">
           <div className="section-title-row">
-            <div className="card-title"><Icon name="history" /> Recent system activity</div>
+            <div className="card-title">Recent system activity</div>
             <span className="link-all" onClick={() => onNav('transparency')}>Full audit trail</span>
           </div>
           <div className="timeline">

@@ -13,7 +13,8 @@ const {
   generateImpactReport,
   addResource,
   updateBeneficiaries,
-  updateResource
+  updateResource,
+  testUrgentAlertDispatch
 } = require('../controllers/campaignController');
 const verifyToken = require('../middleware/authMiddleware');
 const { verifyNgo } = verifyToken;
@@ -39,5 +40,6 @@ router.post('/:id/impact-reports', verifyNgo, generateImpactReport);
 router.post('/:id/resources', verifyNgo, addResource);
 router.put('/:id/resources/:rid', verifyNgo, updateResource);
 router.put('/:id/beneficiaries', verifyNgo, updateBeneficiaries);
+router.post('/:id/test-alert', verifyNgo, testUrgentAlertDispatch);
 
 module.exports = router;

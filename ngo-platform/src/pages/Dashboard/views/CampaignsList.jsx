@@ -59,7 +59,6 @@ export default function CampaignsList({ campaigns, initialFilter, onNavCampaign,
 
       {filteredList.length === 0 ? (
         <div className="empty">
-          <Icon name="campaigns" />
           <div className="empty-title">No campaigns match your filters</div>
           <div className="empty-sub">Try a different status filter or search term.</div>
         </div>
@@ -74,8 +73,8 @@ export default function CampaignsList({ campaigns, initialFilter, onNavCampaign,
                 </div>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                   {(c.is_urgent || c.isUrgent) && (
-                    <span className="badge badge-danger" style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', fontWeight: 700, fontSize: '11px', padding: '2px 6px', borderRadius: '4px' }}>
-                      ⚡ URGENT
+                    <span className="badge badge-danger">
+                      URGENT
                     </span>
                   )}
                   <StatusBadge status={c.status} />

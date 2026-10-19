@@ -12,6 +12,7 @@ import AidLinkAboutUs from './pages/AidLinkAboutUs';
 import AdminDashboard from "./pages/AdminDashboard";
 import NGODashboard from './pages/Dashboard/NGODashboard';
 import SupporterDashboard from './pages/Dashboard/SupporterDashboard';
+import NgoDirectoryPage from './pages/NgoDirectoryPage';
 
 // 1. Layout wrapper that controls visibility of public Navbar and Footer
 function LayoutWrapper({ userContext, children }) {
@@ -49,6 +50,8 @@ export default function App() {
       <LayoutWrapper userContext={userContext}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/directory" element={<NgoDirectoryPage />} />
+          <Route path="/ngo-directory" element={<NgoDirectoryPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register/ngo" element={<NgoForm />} />
           <Route path="/register/individual" element={<SupporterForm />} />

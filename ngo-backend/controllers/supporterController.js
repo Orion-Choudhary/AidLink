@@ -368,11 +368,20 @@ exports.createDonation = async (req, res) => {
 
     const donorName = supporter?.full_name || 'Generous Supporter';
 
-    let targetNgoId = ngoId ? parseInt(ngoId, 10) : null;
-    let targetCampaignId = campaignId ? parseInt(campaignId, 10) : null;
+    let targetNgoId = null;
+    if (ngoId) {
+      const ngoDigits = String(ngoId).replace(/\D/g, '');
+      if (ngoDigits) targetNgoId = parseInt(ngoDigits, 10);
+    }
+
+    let targetCampaignId = null;
+    if (campaignId) {
+      const campDigits = String(campaignId).replace(/\D/g, '');
+      if (campDigits) targetCampaignId = parseInt(campDigits, 10);
+    }
 
     // If campaignId is provided, look up the campaign's NGO if targetNgoId not explicitly set
-    if (targetCampaignId && !targetNgoId) {
+    if (targetCampaignId) {
       const cRes = await pool.query('SELECT ngo_id FROM campaigns WHERE id = $1', [targetCampaignId]);
       if (cRes.rows.length > 0) {
         targetNgoId = cRes.rows[0].ngo_id;

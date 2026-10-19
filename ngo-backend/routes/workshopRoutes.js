@@ -9,5 +9,8 @@ router.get('/', workshopController.getAllWorkshops);
 // NGO specific endpoints (verifyNgo handles token verification and NGO role check)
 router.post('/', verifyNgo, workshopController.createWorkshop);
 router.get('/my', verifyNgo, workshopController.getMyWorkshops);
+router.put('/:id', verifyNgo, workshopController.updateWorkshop);
+router.delete('/:id', verifyNgo, workshopController.deleteWorkshop);
+router.post('/:id/register', workshopController.registerForWorkshop);
 
 module.exports = router;

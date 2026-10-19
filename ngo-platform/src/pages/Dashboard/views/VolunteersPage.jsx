@@ -5,6 +5,7 @@ import { fmtDate, initials } from '../../../data/mockData';
 
 export default function VolunteersPage({ campaigns, onNavCampaign, onDecideVolunteer }) {
   const [statusFilter, setStatusFilter] = useState('all');
+  const [campaignFilter, setCampaignFilter] = useState('all');
   const [query, setQuery] = useState('');
 
   const allVolunteers = campaigns.flatMap(c => 
@@ -15,7 +16,11 @@ export default function VolunteersPage({ campaigns, onNavCampaign, onDecideVolun
     }))
   );
 
-  let list = allVolunteers;
+  const campaignFilteredVolunteers = campaignFilter === 'all'
+    ? allVolunteers
+    : allVolunteers.filter(v => String(v.campaignId) === String(campaignFilter));
+
+  let list = campaignFilteredVolunteers;
   if (statusFilter !== "all") {
     list = list.filter(v => (v.status || '').toLowerCase() === statusFilter.toLowerCase());
   }
@@ -23,9 +28,9 @@ export default function VolunteersPage({ campaigns, onNavCampaign, onDecideVolun
     list = list.filter(v => (v.name || '').toLowerCase().includes(query.toLowerCase()));
   }
 
-  const counts = { all: allVolunteers.length };
+  const counts = { all: campaignFilteredVolunteers.length };
   ["pending", "active", "rejected"].forEach(s => {
-    counts[s] = allVolunteers.filter(v => (v.status || '').toLowerCase() === s).length;
+    counts[s] = campaignFilteredVolunteers.filter(v => (v.status || '').toLowerCase() === s).length;
   });
 
   return (
@@ -38,20 +43,51 @@ export default function VolunteersPage({ campaigns, onNavCampaign, onDecideVolun
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', marginBottom: '16px', flexWrap: 'wrap' }}>
-        <div className="pillrow">
-          <button className={`pill-filter ${statusFilter === 'all' ? 'active' : ''}`} onClick={() => setStatusFilter('all')}>
-            All ({counts.all})
-          </button>
-          <button className={`pill-filter ${statusFilter === 'pending' ? 'active' : ''}`} onClick={() => setStatusFilter('pending')}>
-            Pending review ({counts.pending})
-          </button>
-          <button className={`pill-filter ${statusFilter === 'active' ? 'active' : ''}`} onClick={() => setStatusFilter('active')}>
-            Active ({counts.active})
-          </button>
-          <button className={`pill-filter ${statusFilter === 'rejected' ? 'active' : ''}`} onClick={() => setStatusFilter('rejected')}>
-            Declined ({counts.rejected})
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <label htmlFor="volunteer-campaign-filter" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>
+              Campaign:
+            </label>
+            <select
+              id="volunteer-campaign-filter"
+              className="field-input"
+              style={{
+                width: 'auto',
+                minWidth: '220px',
+                maxWidth: '320px',
+                padding: '5px 10px',
+                fontSize: '12.5px',
+                height: '32px',
+                cursor: 'pointer'
+              }}
+              value={campaignFilter}
+              onChange={(e) => setCampaignFilter(e.target.value)}
+            >
+              <option value="all">All campaigns ({allVolunteers.length})</option>
+              {campaigns.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({(c.volunteers || []).length})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="pillrow">
+            <button className={`pill-filter ${statusFilter === 'all' ? 'active' : ''}`} onClick={() => setStatusFilter('all')}>
+              All ({counts.all})
+            </button>
+            <button className={`pill-filter ${statusFilter === 'pending' ? 'active' : ''}`} onClick={() => setStatusFilter('pending')}>
+              Pending review ({counts.pending})
+            </button>
+            <button className={`pill-filter ${statusFilter === 'active' ? 'active' : ''}`} onClick={() => setStatusFilter('active')}>
+              Active ({counts.active})
+            </button>
+            <button className={`pill-filter ${statusFilter === 'rejected' ? 'active' : ''}`} onClick={() => setStatusFilter('rejected')}>
+              Declined ({counts.rejected})
+            </button>
+          </div>
         </div>
+
         <div className="search-box" style={{ maxWidth: '220px' }}>
           <Icon name="search" />
           <input 
@@ -65,9 +101,25 @@ export default function VolunteersPage({ campaigns, onNavCampaign, onDecideVolun
 
       {list.length === 0 ? (
         <div className="empty">
-          <Icon name="volunteers" />
           <div className="empty-title">No volunteers found</div>
-          <div className="empty-sub">Try a different filter or search term.</div>
+          <div className="empty-sub">
+            {campaignFilter !== 'all'
+              ? 'No volunteers found for the selected campaign and filter.'
+              : 'Try a different filter or search term.'}
+          </div>
+          {(campaignFilter !== 'all' || statusFilter !== 'all' || query) && (
+            <button
+              className="btn btn-secondary btn-sm"
+              style={{ marginTop: '12px' }}
+              onClick={() => {
+                setCampaignFilter('all');
+                setStatusFilter('all');
+                setQuery('');
+              }}
+            >
+              Reset filters
+            </button>
+          )}
         </div>
       ) : (
         <div className="table-wrap">
@@ -133,18 +185,36 @@ export default function VolunteersPage({ campaigns, onNavCampaign, onDecideVolun
                             className="btn btn-secondary btn-sm"
                             onClick={() => onDecideVolunteer(v.campaignId, v.id, 'rejected')}
                           >
-                            <Icon name="x" /> Decline
+                            Decline
                           </button>
                           <button
                             title="Approve Volunteer"
                             className="btn btn-primary btn-sm"
                             onClick={() => onDecideVolunteer(v.campaignId, v.id, 'active')}
                           >
-                            <Icon name="check" /> Approve
+                            Approve
+                          </button>
+                        </div>
+                      ) : (v.status || '').toLowerCase() === 'active' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            title="Decline Volunteer"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => onDecideVolunteer(v.campaignId, v.id, 'rejected')}
+                          >
+                            Decline
                           </button>
                         </div>
                       ) : (
-                        <span className="faint" style={{ fontSize: '12px' }}>Decided</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            title="Approve Volunteer"
+                            className="btn btn-primary btn-sm"
+                            onClick={() => onDecideVolunteer(v.campaignId, v.id, 'active')}
+                          >
+                            Approve
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

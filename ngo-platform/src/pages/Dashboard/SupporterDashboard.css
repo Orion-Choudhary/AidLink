@@ -1,79 +1,114 @@
 /* =========================================================
-   SUPPORTER DASHBOARD STYLES (AidLink)
+   SUPPORTER DASHBOARD STYLES (AidLink - NGO Harmonized Theme)
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #F6F6F3;
+  --surface: #FFFFFF;
+  --surface-sunken: #F0F0EC;
+  --border: #E3E2DC;
+  --border-strong: #CFCEC5;
+  --ink: #1B1F1C;
+  --ink-soft: #565B54;
+  --ink-faint: #8B8F84;
+  --accent: #0E632D;
+  --accent-strong: #0A4D23;
+  --accent-tint: #EAF6EE;
+  --accent-tint-strong: #D0EDD9;
+  --gold: #9C6B12;
+  --gold-tint: #F6EEDC;
+  --success: #0E632D;
+  --success-tint: #EAF6EE;
+  --warn: #A96A12;
+  --warn-tint: #FBF0DD;
+  --danger: #AC3B34;
+  --danger-tint: #FAEAE8;
+  --info: #2C5E8A;
+  --info-tint: #E7F0F7;
+  --neutral-tint: #EEEEE9;
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --radius-l: 12px;
+  --shadow-card: 0 1px 2px rgba(20,24,20,0.04);
+  --shadow-pop: 0 8px 24px rgba(20,24,20,0.12), 0 2px 6px rgba(20,24,20,0.06);
+  --font-display: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --sidebar-w: 248px;
+}
 
 .supporter-dashboard-root {
-  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #f6f7f4;
-  color: #1b2430;
+  font-family: var(--font-body);
+  background-color: var(--bg);
+  color: var(--ink);
   min-height: 100vh;
 }
 
 .supporter-dashboard-root .font-display {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-display);
 }
 
 .supporter-dashboard-root .font-sans {
-  font-family: "IBM Plex Sans", sans-serif;
+  font-family: var(--font-body);
 }
 
-/* Custom Color Tokens */
+/* Custom Color Tokens matching NGO Dashboard */
 .supporter-dashboard-root .bg-paper {
-  background-color: #f6f7f4;
+  background-color: var(--bg);
 }
 
 .supporter-dashboard-root .text-paper {
-  color: #f6f7f4;
+  color: #EFF3F1;
 }
 
 .supporter-dashboard-root .text-paper\/90 {
-  color: rgba(246, 247, 244, 0.9);
+  color: rgba(239, 243, 241, 0.9);
 }
 
 .supporter-dashboard-root .text-paper\/80 {
-  color: rgba(246, 247, 244, 0.8);
+  color: rgba(239, 243, 241, 0.8);
 }
 
 .supporter-dashboard-root .text-paper\/60 {
-  color: rgba(246, 247, 244, 0.6);
+  color: rgba(239, 243, 241, 0.6);
 }
 
 .supporter-dashboard-root .text-ink {
-  color: #1b2430;
+  color: var(--ink);
 }
 
 .supporter-dashboard-root .text-ink-soft {
-  color: #545e6c;
+  color: var(--ink-soft);
 }
 
 .supporter-dashboard-root .bg-ink {
-  background-color: #1b2430;
+  background-color: var(--accent-strong);
 }
 
 .supporter-dashboard-root .bg-ink\/5 {
-  background-color: rgba(27, 36, 48, 0.05);
+  background-color: var(--surface-sunken);
 }
 
 .supporter-dashboard-root .bg-verified {
-  background-color: #1f6f5c;
+  background-color: var(--accent);
 }
 
 .supporter-dashboard-root .text-verified {
-  color: #1f6f5c;
+  color: var(--accent);
 }
 
 .supporter-dashboard-root .bg-verified-soft {
-  background-color: #e4eeea;
+  background-color: var(--accent-tint);
 }
 
 .supporter-dashboard-root .bg-verified\/20 {
-  background-color: rgba(31, 111, 92, 0.2);
+  background-color: rgba(14, 99, 45, 0.15);
 }
 
 .supporter-dashboard-root .border-hairline {
-  border-color: #d8dbd3;
+  border-color: var(--border);
 }
 
 /* Modal overlay styling */

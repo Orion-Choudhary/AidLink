@@ -10,30 +10,25 @@ import {
   HeartHandshake,
   History,
   MessageSquare,
-  User,
-  Bell,
   Settings,
   LogOut,
-  Home,
-  X
+  Home
 } from "lucide-react";
 
 export const SUPPORTER_NAV_ITEMS = [
-  { id: "overview", label: "Dashboard", icon: LayoutDashboard },
-  { id: "discover", label: "Discover campaigns", icon: Compass },
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "discover", label: "Discover Campaigns", icon: Compass },
   { id: "workshops", label: "Workshops", icon: GraduationCap },
   { id: "applications", label: "Applications", icon: ClipboardList },
   { id: "commitments", label: "Commitments", icon: ListChecks },
   { id: "donations", label: "Donations", icon: HeartHandshake },
-  { id: "impact", label: "My impact", icon: Sparkles },
-  { id: "history", label: "History", icon: History },
+  { id: "impact", label: "My Impact", icon: Sparkles },
+  { id: "history", label: "Activity History", icon: History },
   { id: "feedback", label: "Feedback", icon: MessageSquare },
-  { id: "profile", label: "Profile", icon: User },
-  { id: "notifications", label: "Notifications", icon: Bell },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-export default function SupporterSidebar({ activeTab, onSelectTab, isOpen, onClose }) {
+export default function SupporterSidebar({ activeTab, onSelectTab, isOpen, onClose, supporterName }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -45,41 +40,28 @@ export default function SupporterSidebar({ activeTab, onSelectTab, isOpen, onClo
 
   return (
     <>
-      {/* Mobile backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden backdrop-blur-xs"
-          onClick={onClose}
-        />
-      )}
+      {/* Mobile Backdrop */}
+      <div
+        id="sidebar-scrim"
+        style={{ display: isOpen ? "block" : "none" }}
+        onClick={onClose}
+      />
 
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 flex-col bg-ink text-paper/90 transition-transform duration-300 md:static md:translate-x-0 ${
-          isOpen ? "translate-x-0 flex" : "-translate-x-full md:flex hidden"
-        }`}
-      >
-        {/* Logo & Header */}
-        <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="font-display text-2xl font-bold tracking-tight text-paper">
-              AidLink
-            </span>
-            <span className="text-xs bg-emerald-700 text-white px-2 py-0.5 rounded-full font-medium">
-              Supporter
-            </span>
+      <aside id="sidebar" className={isOpen ? "open" : ""}>
+        {/* Brand Header */}
+        <div className="brand">
+          <Link to="/" className="brand-mark" style={{ textDecoration: 'none' }}>
+            <div className="brand-logo">A</div>
+            <div>
+              <div className="brand-name">AidLink</div>
+              <div className="brand-org">{supporterName || "Supporter Portal"}</div>
+            </div>
           </Link>
-          {isOpen && (
-            <button
-              onClick={onClose}
-              className="p-1 rounded-md text-paper/60 hover:text-paper hover:bg-white/10 md:hidden"
-            >
-              <X size={20} />
-            </button>
-          )}
         </div>
 
-        {/* Navigation list */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        {/* Navigation List */}
+        <nav className="mainnav">
+          <div className="nav-section-label">Navigation</div>
           {SUPPORTER_NAV_ITEMS.map(({ id, label, icon: Icon }) => {
             const isActive = activeTab === id;
             return (
@@ -89,33 +71,29 @@ export default function SupporterSidebar({ activeTab, onSelectTab, isOpen, onClo
                   onSelectTab(id);
                   if (onClose) onClose();
                 }}
-                className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors text-left ${
-                  isActive
-                    ? "bg-verified/25 text-white shadow-xs border-l-2 border-emerald-400"
-                    : "text-paper/70 hover:bg-white/5 hover:text-paper"
-                }`}
+                className={`nav-item ${isActive ? "active" : ""}`}
               >
-                <Icon size={17} strokeWidth={isActive ? 2 : 1.75} className={isActive ? "text-emerald-400" : ""} />
+                <Icon size={17} style={{ opacity: isActive ? 1 : 0.85 }} />
                 <span>{label}</span>
               </button>
             );
           })}
         </nav>
 
-        {/* Footer actions */}
-        <div className="p-4 border-t border-white/10 space-y-1">
+        {/* Footer Actions */}
+        <div className="sidebar-foot" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <Link
             to="/"
-            className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-paper/70 hover:bg-white/5 hover:text-paper transition-colors"
+            style={{ color: '#D7E4DF', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}
           >
-            <Home size={17} strokeWidth={1.75} />
+            <Home size={15} />
             <span>Public Home</span>
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+            style={{ background: 'none', border: 'none', color: '#FA8072', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: 0, fontSize: '12px' }}
           >
-            <LogOut size={17} strokeWidth={1.75} />
+            <LogOut size={15} />
             <span>Log out</span>
           </button>
         </div>

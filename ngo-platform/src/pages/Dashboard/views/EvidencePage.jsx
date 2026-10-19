@@ -34,7 +34,6 @@ export default function EvidencePage({ campaigns, onNavCampaign }) {
 
       {list.length === 0 ? (
         <div className="empty">
-          <Icon name="evidence" />
           <div className="empty-title">No evidence found</div>
           <div className="empty-sub">Try a different search term.</div>
         </div>

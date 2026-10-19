@@ -1,7 +1,77 @@
 @import "tailwindcss";
+
+@theme {
+  --color-green-50: #f0f8f2;
+  --color-green-100: #d8eedf;
+  --color-green-200: #b5dfc2;
+  --color-green-300: #88caa0;
+  --color-green-400: #57af7a;
+  --color-green-500: #1a7a3e;
+  --color-green-600: #0e632d;
+  --color-green-700: #0a4d23;
+  --color-green-800: #073a1a;
+  --color-green-900: #0e632d;
+  --color-green-950: #04200e;
+
+  --color-emerald-50: #f0f8f2;
+  --color-emerald-100: #d8eedf;
+  --color-emerald-200: #b5dfc2;
+  --color-emerald-300: #88caa0;
+  --color-emerald-400: #57af7a;
+  --color-emerald-500: #1a7a3e;
+  --color-emerald-600: #0e632d;
+  --color-emerald-700: #0a4d23;
+  --color-emerald-800: #073a1a;
+  --color-emerald-900: #0e632d;
+  --color-emerald-950: #04200e;
+
+  --color-verified: #0e632d;
+}
+
+:root {
+  --aidlink-green: #0e632d;
+  --aidlink-green-dark: #0a4d23;
+  --aidlink-green-light: #eaf6ee;
+  --aidlink-green-border: #b8e2c5;
+}
+
+/* Universal Green Standard across all pages and components */
+.bg-green-600, .bg-emerald-600, .bg-green-700, .bg-emerald-700, .bg-green-800, .bg-emerald-800 {
+  background-color: #0e632d !important;
+}
+
+.hover\:bg-green-700:hover, .hover\:bg-emerald-700:hover, .hover\:bg-green-800:hover, .hover\:bg-emerald-800:hover {
+  background-color: #0a4d23 !important;
+}
+
+.text-green-600, .text-emerald-600, .text-green-700, .text-emerald-700 {
+  color: #0e632d !important;
+}
+
+.hover\:text-green-700:hover, .hover\:text-emerald-700:hover {
+  color: #0a4d23 !important;
+}
+
+.border-green-600, .border-emerald-600, .border-green-700, .border-emerald-700 {
+  border-color: #0e632d !important;
+}
+
+.bg-green-50, .bg-emerald-50 {
+  background-color: #f0f8f2 !important;
+}
+
+.bg-green-100, .bg-emerald-100 {
+  background-color: #d8eedf !important;
+}
+
+.text-green-800, .text-emerald-800 {
+  color: #073a1a !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
+
 @keyframes marquee {
   0% { transform: translateX(100vw); }
   100% { transform: translateX(-100%); }
@@ -15,4 +85,68 @@ html {
 /* Optional: Pauses the ticker when the user hovers over it to read */
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* ==========================================================================
+   AidLink Custom Brand Loader & Skeleton Animation Tokens
+   ========================================================================== */
+
+@keyframes aidlinkPulse {
+  0%, 100% {
+    transform: scale(0.96);
+    opacity: 0.60;
+    filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.25));
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.95;
+    filter: drop-shadow(0 0 32px rgba(16, 185, 129, 0.55));
+  }
+}
+
+.aidlink-pulsate {
+  animation: aidlinkPulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes shimmerWave {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-shimmer {
+  position: relative !important;
+  overflow: hidden !important;
+  background-color: #d6dacd !important;
+}
+
+.skeleton-shimmer::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 20%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0) 100%
+  ) !important;
+  animation: shimmerWave 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  pointer-events: none !important;
+}
+
+.splash-fade-exit {
+  opacity: 0 !important;
+  transform: scale(1.05);
+  filter: blur(8px);
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
