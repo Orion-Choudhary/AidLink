@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import usePageTitle from '../../hooks/usePageTitle';
 import Sidebar from '../../components/Dashboard/Sidebar';
 import Topbar from '../../components/Dashboard/Topbar';
 import Toast from '../../components/Dashboard/Toast';
@@ -44,6 +45,7 @@ import {
 } from '../../data/mockData';
 
 export default function NGODashboard({ initialCampaignId }) {
+  usePageTitle('NGO Management Dashboard');
   // State
   const [org, setOrg] = useState(null);
   const [campaigns, setCampaigns] = useState([]);

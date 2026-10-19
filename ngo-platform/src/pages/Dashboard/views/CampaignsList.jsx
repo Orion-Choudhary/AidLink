@@ -24,7 +24,7 @@ export default function CampaignsList({ campaigns, initialFilter, onNavCampaign,
       <div className="page-head">
         <div>
           <h1>Campaigns</h1>
-          <div className="page-sub">Every relief campaign run through Sahaaksh, with its current status, progress and location.</div>
+          <div className="page-sub">Every relief campaign run through AidLink, with its current status, progress and location.</div>
         </div>
         <button className="btn btn-primary" onClick={onOpenNewCampaignModal}>
           <Icon name="plus" /> New campaign

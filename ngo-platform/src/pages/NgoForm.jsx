@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { AlertCircle } from "lucide-react";
+import usePageTitle from "../hooks/usePageTitle";
 
 const INITIAL_FORM = {
   orgName: "",
@@ -13,6 +15,7 @@ const INITIAL_FORM = {
 };
 
 export default function NgoForm() {
+  usePageTitle("Register Your NGO");
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState(INITIAL_FORM);
@@ -174,8 +177,9 @@ export default function NgoForm() {
         </p>
 
         {apiError && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
-            {apiError}
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-3.5 py-2.5 text-sm text-red-700 flex items-start gap-2 animate-shake">
+            <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <span>{apiError}</span>
           </div>
         )}
 

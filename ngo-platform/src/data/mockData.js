@@ -1,5 +1,5 @@
 // ==================== DATA MODEL ====================
-// All data is fictional, for demonstration of the Sahaaksh platform only.
+// All data is fictional, for demonstration of the AidLink platform only.
 
 let _uid = 1000;
 export function nextId(prefix) {

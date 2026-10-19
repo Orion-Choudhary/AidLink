@@ -1,24 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import NgoForm from './pages/NgoForm';
-import NgoPendingVerification from './pages/NgoPendingVerification';
-import SupporterForm from './pages/SupporterForm';
 import ScrollToTop from './components/ScrollToTop';
-import AidLinkAboutUs from './pages/AidLinkAboutUs';
-import AdminDashboard from "./pages/AdminDashboard";
-import NGODashboard from './pages/Dashboard/NGODashboard';
-import SupporterDashboard from './pages/Dashboard/SupporterDashboard';
-import NgoDirectoryPage from './pages/NgoDirectoryPage';
+import LandingPageLoader from './components/LandingPageLoader';
 
-// 1. Layout wrapper that controls visibility of public Navbar and Footer
+// Lazy load route pages for performance & minimal initial bundle size
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const NgoDirectoryPage = lazy(() => import('./pages/NgoDirectoryPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const NgoForm = lazy(() => import('./pages/NgoForm'));
+const NgoPendingVerification = lazy(() => import('./pages/NgoPendingVerification'));
+const SupporterForm = lazy(() => import('./pages/SupporterForm'));
+const AidLinkAboutUs = lazy(() => import('./pages/AidLinkAboutUs'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const NGODashboard = lazy(() => import('./pages/Dashboard/NGODashboard'));
+const SupporterDashboard = lazy(() => import('./pages/Dashboard/SupporterDashboard'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+// Layout wrapper that controls visibility of public Navbar and Footer
 function LayoutWrapper({ userContext, children }) {
   const location = useLocation();
   
-  // 2. Hide public Navbar and Footer on dashboards
+  // Hide public Navbar and Footer on full dashboards
   const isDashboard =
     location.pathname.startsWith('/ngo-dashboard') ||
     location.pathname.startsWith('/dashboard') ||
@@ -26,11 +30,13 @@ function LayoutWrapper({ userContext, children }) {
     location.pathname.startsWith('/admin');
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col w-full overflow-x-hidden">
       {!isDashboard && <Navbar userContext={userContext} />}
       
-      <main className="flex-grow">
-        {children}
+      <main className="flex-grow w-full">
+        <Suspense fallback={<LandingPageLoader />}>
+          {children}
+        </Suspense>
       </main>
       
       {!isDashboard && <Footer />}
@@ -39,10 +45,29 @@ function LayoutWrapper({ userContext, children }) {
 }
 
 export default function App() {
-  const [userContext, setUserContext] = useState({
-    isLoggedIn: false,
-    role: null, 
+  const [userContext, setUserContext] = useState(() => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('userRole');
+    return {
+      isLoggedIn: Boolean(token),
+      role: role || null,
+    };
   });
+
+  // Listen for storage events (e.g. login/logout in other tabs or actions)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const token = localStorage.getItem('token');
+      const role = localStorage.getItem('userRole');
+      setUserContext({
+        isLoggedIn: Boolean(token),
+        role: role || null,
+      });
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   return (
     <Router>
@@ -61,6 +86,8 @@ export default function App() {
           <Route path="/ngo-dashboard" element={<NGODashboard />} />
           <Route path="/dashboard" element={<SupporterDashboard />} />
           <Route path="/volunteer-dashboard" element={<SupporterDashboard />} />
+          {/* Custom 404 Route */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </LayoutWrapper>
     </Router>

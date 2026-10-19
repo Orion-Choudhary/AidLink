@@ -33,6 +33,7 @@ import SupporterSidebar from "../../components/Dashboard/SupporterSidebar";
 import "./NGODashboard.css";
 import "./SupporterDashboard.css";
 import SupporterDashboardSkeleton from "./skeletons/SupporterDashboardSkeleton";
+import usePageTitle from "../../hooks/usePageTitle";
 
 const API_BASE = "http://localhost:5000/api";
 
@@ -59,6 +60,7 @@ const IndianRupee = ({ size = 24, className = "" }) => (
 );
 
 export default function SupporterDashboard() {
+  usePageTitle('Supporter Portal');
   const [activeTab, setActiveTab] = useState("overview");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");

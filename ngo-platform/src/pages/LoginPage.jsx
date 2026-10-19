@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-
-// const ROLE_ROUTES = {
-//   2: "/ngo-dashboard",
-//   3: "/dashboard",
-// };
-
+import { AlertCircle, CheckCircle2 } from "lucide-react";
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function LoginPage() {
+  usePageTitle("Sign In");
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -101,13 +98,15 @@ const handleSubmit = async (e) => {
         </p>
 
         {apiError && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
-            {apiError}
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-3.5 py-2.5 text-sm text-red-700 flex items-start gap-2 animate-shake">
+            <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <span>{apiError}</span>
           </div>
         )}
         {successMessage && (
-          <div className="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm text-emerald-700">
-            {successMessage}
+          <div className="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 text-sm text-emerald-800 flex items-center gap-2 animate-fade-in">
+            <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+            <span className="font-medium">{successMessage}</span>
           </div>
         )}
 

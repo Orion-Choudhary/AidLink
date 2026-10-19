@@ -13,6 +13,7 @@ import {
   Compass,
   HeartHandshake,
 } from "lucide-react";
+import usePageTitle from "../hooks/usePageTitle";
 
 /* ---------- Tailwind-Native Scroll-Reveal Wrapper ---------- */
 function Reveal({ children, as: Tag = "div", className = "", delay = 0 }) {
@@ -49,6 +50,7 @@ function Reveal({ children, as: Tag = "div", className = "", delay = 0 }) {
 }
 
 export default function AboutUs() {
+  usePageTitle("About Us & Accountability Model");
   const chainSteps = [
     {
       icon: Compass,

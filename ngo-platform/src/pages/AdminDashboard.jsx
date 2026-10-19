@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function AdminDashboard() {
+  usePageTitle("Platform Administration");
   const [pendingNgos, setPendingNgos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");

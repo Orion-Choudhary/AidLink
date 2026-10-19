@@ -381,7 +381,7 @@ export default function CampaignDetail({
             <Icon name="alert" />
             <div>
               <div className="notice-title">Simulated donations</div>
-              <div className="notice-body">All donation records on Sahaaksh are simulated for accountability tracking and demonstration. No real payment processing takes place on this platform.</div>
+              <div className="notice-body">All donation records on AidLink are simulated for accountability tracking and demonstration. No real payment processing takes place on this platform.</div>
             </div>
           </div>
           {campaign.donations.length === 0 ? (

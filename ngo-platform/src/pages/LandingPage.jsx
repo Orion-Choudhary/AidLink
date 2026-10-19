@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LandingPageLoader from '../components/LandingPageLoader';
+import usePageTitle from '../hooks/usePageTitle';
 
 // --- ANIMATED COUNTER COMPONENT ---
 const AnimatedCounter = ({ target, duration = 2000 }) => {
@@ -27,6 +28,7 @@ const AnimatedCounter = ({ target, duration = 2000 }) => {
 };
 
 export default function LandingPage() {
+  usePageTitle('Transparent Disaster Relief & NGO Accountability');
   const navigate = useNavigate();
   const [typedText, setTypedText] = useState('');
   const [initiatives, setInitiatives] = useState([]);
@@ -132,7 +134,13 @@ export default function LandingPage() {
   }, []);
 
   const handleActionClick = () => {
-    navigate('/register/individual'); 
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('userRole');
+    if (token) {
+      navigate(role === 'NGO' ? '/ngo-dashboard' : '/dashboard');
+    } else {
+      navigate('/register/individual'); 
+    }
   };
 
   return (
@@ -223,6 +231,7 @@ export default function LandingPage() {
               <img 
                 src="/png1.png" 
                 alt="Volunteer" 
+                loading="lazy"
                 className="h-20 w-20 mb-2 object-contain" 
               />
               <h3 className="mt-8 text-2xl font-bold text-gray-900">Volunteer & Donate</h3>
@@ -231,7 +240,7 @@ export default function LandingPage() {
               </p>
               <button 
                 onClick={() => navigate('/register/individual')} 
-                className="mt-8 text-green-600 font-bold hover:text-green-700 hover:underline transition-colors flex items-center gap-1"
+                className="mt-8 text-green-600 font-bold hover:text-green-700 hover:underline transition-colors flex items-center gap-1 cursor-pointer"
               >
                 Register as Individual <span aria-hidden="true">→</span>
               </button>
@@ -242,6 +251,7 @@ export default function LandingPage() {
               <img 
                 src="/png2.png" 
                 alt="NGO" 
+                loading="lazy"
                 className="h-20 w-20 mb-2 object-contain" 
               />
               <h3 className="mt-8 text-2xl font-bold text-gray-900">Register NGO</h3>
@@ -250,7 +260,7 @@ export default function LandingPage() {
               </p>
               <button 
                 onClick={() => navigate('/register/ngo')} 
-                className="mt-8 text-green-600 font-bold hover:text-green-700 hover:underline transition-colors flex items-center gap-1"
+                className="mt-8 text-green-600 font-bold hover:text-green-700 hover:underline transition-colors flex items-center gap-1 cursor-pointer"
               >
                 Register Organization <span aria-hidden="true">→</span>
               </button>
@@ -365,11 +375,19 @@ export default function LandingPage() {
           {/* "More..." Button */}
           <div className="mt-6 flex justify-end">
             <button 
-              onClick={() => navigate('/register/individual')} 
+              onClick={() => {
+                const token = localStorage.getItem('token');
+                const role = localStorage.getItem('userRole');
+                if (token) {
+                  navigate(role === 'NGO' ? '/ngo-dashboard' : '/dashboard');
+                } else {
+                  navigate('/register/individual');
+                }
+              }} 
               style={{ color: '#ffffff' }}
               className="text-white hover:text-emerald-400 font-bold text-sm md:text-base transition-colors flex items-center gap-1 drop-shadow-md cursor-pointer"
             >
-              Explore all &amp; Register <span aria-hidden="true">→</span>
+              Explore all &amp; Participate <span aria-hidden="true">→</span>
             </button>
           </div>
 

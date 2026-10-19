@@ -68,18 +68,25 @@
   color: #073a1a !important;
 }
 
+html, body, #root {
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 @keyframes marquee {
-  0% { transform: translateX(100vw); }
+  0% { transform: translateX(100%); }
   100% { transform: translateX(-100%); }
 }
 
 .animate-marquee {
   animation: marquee 25s linear infinite;
   display: inline-block;
+  will-change: transform;
 }
 
 /* Optional: Pauses the ticker when the user hovers over it to read */

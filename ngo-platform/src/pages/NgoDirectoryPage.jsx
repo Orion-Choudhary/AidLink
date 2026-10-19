@@ -17,8 +17,10 @@ import {
   TrendingUp,
   ChevronRight
 } from 'lucide-react';
+import usePageTitle from '../hooks/usePageTitle';
 
 export default function NgoDirectoryPage() {
+  usePageTitle('Verified NGO Directory');
   const [ngos, setNgos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

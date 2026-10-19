@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { CheckCircle2, AlertCircle } from "lucide-react";
+import usePageTitle from "../hooks/usePageTitle";
 
 const HELP_OPTIONS = [
   { id: "goods", label: "Donating physical goods" },
@@ -18,11 +20,13 @@ const INITIAL_FORM = {
 };
 
 export default function SupporterForm() {
+  usePageTitle("Join as a Supporter");
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [apiError, setApiError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -113,17 +117,19 @@ export default function SupporterForm() {
       }
 
       if (!res.ok) {
-        setApiError("Something went wrong. Please try again.");
+        setApiError(data.message || "Something went wrong. Please check your information and try again.");
         return;
       }
 
-      // If successful, redirect to dashboard
+      setSuccessMessage("Registration successful! Redirecting you to login...");
+      
+      // Delay navigation so user can see positive confirmation
       setTimeout(() => {
         navigate("/login");
-      }, 500);
+      }, 1500);
       
     } catch (err) {
-      setApiError("Unable to reach the server. Please check if backend is running.");
+      setApiError("Unable to reach the server. Please verify the backend service is running.");
     } finally {
       setIsLoading(false);
     }
@@ -140,8 +146,16 @@ export default function SupporterForm() {
         </p>
 
         {apiError && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
-            {apiError}
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5 text-sm text-red-700 flex items-start gap-2 animate-shake">
+            <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <span>{apiError}</span>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2.5 text-sm text-emerald-800 flex items-center gap-2 animate-fade-in">
+            <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+            <span className="font-medium">{successMessage}</span>
           </div>
         )}
 
