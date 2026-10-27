@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LandingPageLoader from '../components/LandingPageLoader';
 import usePageTitle from '../hooks/usePageTitle';
+import { API_BASE } from '../config/api';
 
 // --- ANIMATED COUNTER COMPONENT ---
 const AnimatedCounter = ({ target, duration = 2000 }) => {
@@ -62,8 +63,8 @@ export default function LandingPage() {
       if (isInitial) setIsLoading(true);
       try {
         const [cRes, wRes] = await Promise.all([
-          fetch('http://localhost:5000/api/campaigns').then(r => r.ok ? r.json() : []).catch(() => []),
-          fetch('http://localhost:5000/api/workshops').then(r => r.ok ? r.json() : []).catch(() => [])
+          fetch(`${API_BASE}/api/campaigns`).then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch(`${API_BASE}/api/workshops`).then(r => r.ok ? r.json() : []).catch(() => [])
         ]);
 
         const formattedCamps = (cRes || []).filter(c => c.status === 'active' || !c.status).map(c => ({

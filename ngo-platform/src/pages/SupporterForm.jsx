@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import usePageTitle from "../hooks/usePageTitle";
+import { API_BASE } from "../config/api";
 
 const HELP_OPTIONS = [
   { id: "goods", label: "Donating physical goods" },
@@ -94,8 +95,7 @@ export default function SupporterForm() {
       // ADDED // TO FIX SYNTAX ERROR
       // Placeholder endpoint — backend wiring handled separately.
       
-      // ADDED http://localhost:5000 TO THE URL
-      const res = await fetch("http://localhost:5000/api/auth/register/individual", {
+      const res = await fetch(`${API_BASE}/api/auth/register/individual`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

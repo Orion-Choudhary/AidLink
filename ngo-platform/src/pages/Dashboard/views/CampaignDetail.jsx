@@ -2,6 +2,7 @@ import React from 'react';
 import Icon from '../../../components/Dashboard/Icons';
 import StatusBadge from '../../../components/Dashboard/StatusBadge';
 import { fmtINR, fmtDate, initials } from '../../../data/mockData';
+import { API_BASE } from '../../../config/api';
 
 const CAMPAIGN_TABS = [
   { id: "chain", label: "Overview" },
@@ -247,7 +248,7 @@ export default function CampaignDetail({
                       {docPath && (
                         <div style={{ marginTop: '5px' }}>
                           <a
-                            href={`http://localhost:5000/${docPath}`}
+                            href={`${API_BASE}/${docPath}`}
                             target="_blank"
                             rel="noreferrer"
                             className="btn btn-secondary btn-sm"
@@ -293,7 +294,7 @@ export default function CampaignDetail({
                       <td>
                         {docPath ? (
                           <a
-                            href={`http://localhost:5000/${docPath}`}
+                            href={`${API_BASE}/${docPath}`}
                             target="_blank"
                             rel="noreferrer"
                             className="btn btn-secondary btn-sm"

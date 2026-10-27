@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Icon from '../../../components/Dashboard/Icons';
 import StatusBadge from '../../../components/Dashboard/StatusBadge';
 import { fmtDate, initials } from '../../../data/mockData';
+import { API_BASE } from '../../../config/api';
 
 export default function VolunteersPage({ campaigns, onNavCampaign, onDecideVolunteer }) {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -164,7 +165,7 @@ export default function VolunteersPage({ campaigns, onNavCampaign, onDecideVolun
                     <td>
                       {docPath ? (
                         <a
-                          href={`http://localhost:5000/${docPath}`}
+                          href={`${API_BASE}/${docPath}`}
                           target="_blank"
                           rel="noreferrer"
                           className="btn btn-secondary btn-sm"

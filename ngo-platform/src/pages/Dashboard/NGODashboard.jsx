@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import usePageTitle from '../../hooks/usePageTitle';
+import { API_BASE } from '../../config/api';
+
+const API_ROOT = `${API_BASE}/api`;
 import Sidebar from '../../components/Dashboard/Sidebar';
 import Topbar from '../../components/Dashboard/Topbar';
 import Toast from '../../components/Dashboard/Toast';
@@ -77,7 +80,7 @@ export default function NGODashboard({ initialCampaignId }) {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/ngos/profile', {
+      const response = await fetch(`${API_ROOT}/ngos/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -104,7 +107,7 @@ export default function NGODashboard({ initialCampaignId }) {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/campaigns', {
+      const response = await fetch(`${API_ROOT}/campaigns`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -124,7 +127,7 @@ export default function NGODashboard({ initialCampaignId }) {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/ngos/donations', {
+      const response = await fetch(`${API_ROOT}/ngos/donations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -142,7 +145,7 @@ export default function NGODashboard({ initialCampaignId }) {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/workshops/my', {
+      const response = await fetch(`${API_ROOT}/workshops/my`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -218,7 +221,7 @@ export default function NGODashboard({ initialCampaignId }) {
         formData.append('coverImage', coverImage);
       }
 
-      const response = await fetch('http://localhost:5000/api/campaigns', {
+      const response = await fetch(`${API_ROOT}/campaigns`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -244,7 +247,7 @@ export default function NGODashboard({ initialCampaignId }) {
   const handleToggleUrgent = async (cid, currentUrgent) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/campaigns/${cid}/urgent`, {
+      const response = await fetch(`${API_ROOT}/campaigns/${cid}/urgent`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -277,7 +280,7 @@ export default function NGODashboard({ initialCampaignId }) {
     }
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/workshops', {
+      const response = await fetch(`${API_ROOT}/workshops`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -303,7 +306,7 @@ export default function NGODashboard({ initialCampaignId }) {
     if (!selectedWorkshop) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/workshops/${selectedWorkshop.id}`, {
+      const response = await fetch(`${API_ROOT}/workshops/${selectedWorkshop.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -330,7 +333,7 @@ export default function NGODashboard({ initialCampaignId }) {
     if (!selectedWorkshop) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/workshops/${selectedWorkshop.id}`, {
+      const response = await fetch(`${API_ROOT}/workshops/${selectedWorkshop.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -354,7 +357,7 @@ export default function NGODashboard({ initialCampaignId }) {
   const handlePublishCampaign = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/campaigns/${id}/status`, {
+      const response = await fetch(`${API_ROOT}/campaigns/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -388,7 +391,7 @@ export default function NGODashboard({ initialCampaignId }) {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/campaigns/${route.campaignId}/activities`, {
+      const response = await fetch(`${API_ROOT}/campaigns/${route.campaignId}/activities`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -425,7 +428,7 @@ export default function NGODashboard({ initialCampaignId }) {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/campaigns/${route.campaignId}/expenses`, {
+      const response = await fetch(`${API_ROOT}/campaigns/${route.campaignId}/expenses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -468,7 +471,7 @@ export default function NGODashboard({ initialCampaignId }) {
       formData.append('linked_to', linkedTo);
       formData.append('evidenceFile', file);
 
-      const response = await fetch(`http://localhost:5000/api/campaigns/${route.campaignId}/evidence`, {
+      const response = await fetch(`${API_ROOT}/campaigns/${route.campaignId}/evidence`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -497,7 +500,7 @@ export default function NGODashboard({ initialCampaignId }) {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/campaigns/${route.campaignId}/updates`, {
+      const response = await fetch(`${API_ROOT}/campaigns/${route.campaignId}/updates`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -528,7 +531,7 @@ export default function NGODashboard({ initialCampaignId }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/campaigns/${cid}/impact-reports`, {
+      const response = await fetch(`${API_ROOT}/campaigns/${cid}/impact-reports`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -561,7 +564,7 @@ export default function NGODashboard({ initialCampaignId }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/volunteers/${vid}/status`, {
+      const response = await fetch(`${API_ROOT}/volunteers/${vid}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -585,7 +588,7 @@ export default function NGODashboard({ initialCampaignId }) {
   const handleAllocateResource = async (resourceData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/campaigns/${route.campaignId}/resources`, {
+      const response = await fetch(`${API_ROOT}/campaigns/${route.campaignId}/resources`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -611,7 +614,7 @@ export default function NGODashboard({ initialCampaignId }) {
     if (!selectedResource) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/campaigns/${route.campaignId}/resources/${selectedResource.id}`, {
+      const response = await fetch(`${API_ROOT}/campaigns/${route.campaignId}/resources/${selectedResource.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -637,7 +640,7 @@ export default function NGODashboard({ initialCampaignId }) {
   const handleUpdateBeneficiaries = async (beneficiariesData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/campaigns/${route.campaignId}/beneficiaries`, {
+      const response = await fetch(`${API_ROOT}/campaigns/${route.campaignId}/beneficiaries`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

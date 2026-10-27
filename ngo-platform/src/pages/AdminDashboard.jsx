@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import usePageTitle from "../hooks/usePageTitle";
+import { API_BASE } from "../config/api";
 
 export default function AdminDashboard() {
   usePageTitle("Platform Administration");
@@ -9,7 +10,7 @@ export default function AdminDashboard() {
 
   const fetchPendingNgos = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/admin/ngos/pending");
+      const res = await fetch(`${API_BASE}/api/auth/admin/ngos/pending`);
       if (!res.ok) throw new Error("Failed to fetch pending NGOs");
       const data = await res.json();
       setPendingNgos(data);
@@ -26,7 +27,7 @@ export default function AdminDashboard() {
 
   const handleStatusUpdate = async (ngoId, newStatus) => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/admin/ngo-status", {
+      const res = await fetch(`${API_BASE}/api/auth/admin/ngo-status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ngoId, status: newStatus }),
@@ -63,7 +64,7 @@ export default function AdminDashboard() {
                   
                   <div className="flex gap-4 pt-2">
                     <a 
-                      href={`http://localhost:5000/${ngo.registration_cert_path}`} 
+                      href={`${API_BASE}/${ngo.registration_cert_path}`} 
                       target="_blank" 
                       rel="noreferrer"
                       className="text-sm text-blue-600 hover:underline"
@@ -71,7 +72,7 @@ export default function AdminDashboard() {
                       📄 View Certificate
                     </a>
                     <a 
-                      href={`http://localhost:5000/${ngo.supporting_doc_path}`} 
+                      href={`${API_BASE}/${ngo.supporting_doc_path}`} 
                       target="_blank" 
                       rel="noreferrer"
                       className="text-sm text-blue-600 hover:underline"

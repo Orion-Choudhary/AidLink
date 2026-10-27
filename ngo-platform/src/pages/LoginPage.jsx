@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import usePageTitle from "../hooks/usePageTitle";
+import { API_BASE } from "../config/api";
 
 export default function LoginPage() {
   usePageTitle("Sign In");
@@ -52,7 +53,7 @@ const handleSubmit = async (e) => {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

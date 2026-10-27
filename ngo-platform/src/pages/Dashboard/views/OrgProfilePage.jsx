@@ -2,6 +2,7 @@ import React from 'react';
 import Icon from '../../../components/Dashboard/Icons';
 import StatusBadge from '../../../components/Dashboard/StatusBadge';
 import { fmtDate, initials } from '../../../data/mockData';
+import { API_BASE } from '../../../config/api';
 
 export default function OrgProfilePage({ org = {}, onShowToast }) {
   const v = org?.verification || {};
@@ -117,7 +118,7 @@ export default function OrgProfilePage({ org = {}, onShowToast }) {
               </div>
               {d.path ? (
                 <a 
-                  href={`http://localhost:5000/${d.path}`} 
+                  href={`${API_BASE}/${d.path}`} 
                   target="_blank" 
                   rel="noreferrer"
                   className="icon-btn"

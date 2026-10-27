@@ -34,8 +34,9 @@ import "./NGODashboard.css";
 import "./SupporterDashboard.css";
 import SupporterDashboardSkeleton from "./skeletons/SupporterDashboardSkeleton";
 import usePageTitle from "../../hooks/usePageTitle";
+import { API_BASE as SERVER_BASE } from "../../config/api";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = `${SERVER_BASE}/api`;
 
 const IndianRupee = ({ size = 24, className = "" }) => (
   <svg
@@ -237,7 +238,7 @@ export default function SupporterDashboard() {
   const loadWorkshops = async () => {
     try {
       const token = getAuthToken();
-      const res = await fetch(`http://localhost:5000/api/workshops`, {
+      const res = await fetch(`${API_BASE}/workshops`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -799,7 +800,7 @@ export default function SupporterDashboard() {
                       <div>
                         {camp.cover_image_path ? (
                           <img
-                            src={`http://localhost:5000/${camp.cover_image_path}`}
+                            src={`${SERVER_BASE}/${camp.cover_image_path}`}
                             alt={camp.name}
                             className="w-full h-44 object-cover"
                           />
@@ -1050,7 +1051,7 @@ export default function SupporterDashboard() {
                           <span>Applied on {vol.applied_on ? new Date(vol.applied_on).toLocaleDateString() : "Recently"}</span>
                           {vol.document_path && (
                             <a
-                              href={`http://localhost:5000/${vol.document_path}`}
+                              href={`${SERVER_BASE}/${vol.document_path}`}
                               target="_blank"
                               rel="noreferrer"
                               className="text-emerald-700 hover:underline flex items-center gap-1 font-medium"
@@ -1343,7 +1344,7 @@ export default function SupporterDashboard() {
                     </div>
                     {supporter.resumePath && (
                       <a
-                        href={`http://localhost:5000/${supporter.resumePath}`}
+                        href={`${SERVER_BASE}/${supporter.resumePath}`}
                         target="_blank"
                         rel="noreferrer"
                         className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-emerald-300 text-emerald-900 hover:bg-emerald-100 transition-colors inline-flex items-center gap-1.5"

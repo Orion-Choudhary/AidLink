@@ -18,6 +18,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import usePageTitle from '../hooks/usePageTitle';
+import { API_BASE } from '../config/api';
 
 export default function NgoDirectoryPage() {
   usePageTitle('Verified NGO Directory');
@@ -41,7 +42,7 @@ export default function NgoDirectoryPage() {
   const fetchNgos = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/ngos/directory');
+      const res = await fetch(`${API_BASE}/api/ngos/directory`);
       if (!res.ok) throw new Error('Failed to fetch NGO directory data');
       const data = await res.json();
       setNgos(data);

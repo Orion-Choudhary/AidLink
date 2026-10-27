@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import usePageTitle from "../hooks/usePageTitle";
+import { API_BASE } from "../config/api";
 
 const INITIAL_FORM = {
   orgName: "",
@@ -140,7 +141,7 @@ export default function NgoForm() {
     // Note: 'confirmation' is usually just frontend validation, but you can send it if needed
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register-ngo", {
+      const res = await fetch(`${API_BASE}/api/auth/register-ngo`, {
         method: "POST",
         // Do NOT set "Content-Type" here; the browser automatically sets it 
         // to "multipart/form-data" with the correct boundary when using FormData.

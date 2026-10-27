@@ -2,7 +2,12 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 const poolConfig = process.env.DATABASE_URL
-  ? { connectionString: process.env.DATABASE_URL }
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      ...(process.env.NODE_ENV === 'production' || process.env.DATABASE_URL.includes('render.com')
+        ? { ssl: { rejectUnauthorized: false } }
+        : {}),
+    }
   : {
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD,
