@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
+import SmoothScroll from './components/SmoothScroll';
+import BackToTopButton from './components/BackToTopButton';
 import LandingPageLoader from './components/LandingPageLoader';
 
 // Lazy load route pages for performance & minimal initial bundle size
@@ -16,6 +18,7 @@ const AidLinkAboutUs = lazy(() => import('./pages/AidLinkAboutUs'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const NGODashboard = lazy(() => import('./pages/Dashboard/NGODashboard'));
 const SupporterDashboard = lazy(() => import('./pages/Dashboard/SupporterDashboard'));
+const VolunteerDirectoryPage = lazy(() => import('./pages/VolunteerDirectoryPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Layout wrapper that controls visibility of public Navbar and Footer
@@ -40,6 +43,7 @@ function LayoutWrapper({ userContext, children }) {
       </main>
       
       {!isDashboard && <Footer />}
+      {!isDashboard && <BackToTopButton />}
     </div>
   );
 }
@@ -71,25 +75,28 @@ export default function App() {
 
   return (
     <Router>
-      <ScrollToTop />
-      <LayoutWrapper userContext={userContext}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/directory" element={<NgoDirectoryPage />} />
-          <Route path="/ngo-directory" element={<NgoDirectoryPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register/ngo" element={<NgoForm />} />
-          <Route path="/register/individual" element={<SupporterForm />} />
-          <Route path="/ngo-pending-verification" element={<NgoPendingVerification />} />
-          <Route path="/AboutUs" element={<AidLinkAboutUs />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/ngo-dashboard" element={<NGODashboard />} />
-          <Route path="/dashboard" element={<SupporterDashboard />} />
-          <Route path="/volunteer-dashboard" element={<SupporterDashboard />} />
-          {/* Custom 404 Route */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </LayoutWrapper>
+      <SmoothScroll>
+        <ScrollToTop />
+        <LayoutWrapper userContext={userContext}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/directory" element={<NgoDirectoryPage />} />
+            <Route path="/ngo-directory" element={<NgoDirectoryPage />} />
+            <Route path="/volunteers" element={<VolunteerDirectoryPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register/ngo" element={<NgoForm />} />
+            <Route path="/register/individual" element={<SupporterForm />} />
+            <Route path="/ngo-pending-verification" element={<NgoPendingVerification />} />
+            <Route path="/AboutUs" element={<AidLinkAboutUs />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/ngo-dashboard" element={<NGODashboard />} />
+            <Route path="/dashboard" element={<SupporterDashboard />} />
+            <Route path="/volunteer-dashboard" element={<SupporterDashboard />} />
+            {/* Custom 404 Route */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </LayoutWrapper>
+      </SmoothScroll>
     </Router>
   );
 }

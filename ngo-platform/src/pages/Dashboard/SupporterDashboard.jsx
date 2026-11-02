@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   ShieldCheck,
+  AlertCircle,
   Bell,
   MapPin,
-  ArrowRight,
   CheckCircle2,
   FileCheck,
   ImagePlus,
@@ -13,7 +13,6 @@ import {
   GraduationCap,
   ClipboardList,
   ListChecks,
-  Sparkles,
   Calendar,
   Clock,
   TrendingUp,
@@ -93,6 +92,7 @@ export default function SupporterDashboard() {
   const [recentActivity, setRecentActivity] = useState([]);
   const [localCampaigns, setLocalCampaigns] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
+  const [hoveredLocationId, setHoveredLocationId] = useState(null);
   const [selectedWorkshop, setSelectedWorkshop] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [workshopsList, setWorkshopsList] = useState([]);
@@ -619,18 +619,24 @@ export default function SupporterDashboard() {
                   )}
                 </section>
 
-                {/* Recent Activity (Unified Feed: Urgent Campaigns first, then Regular Campaigns & Workshops) */}
+                {/* Recent Activity (Unified Feed: Hard-capped top 5 items, Clean Minimalist Design) */}
                 <section className="lg:col-span-2">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-display text-xl text-ink font-semibold">
-                      Recent Activity
-                    </h2>
+                    <div>
+                      <h2 className="font-display text-xl text-ink font-semibold">
+                        Recent Activity
+                      </h2>
+                      <p className="text-xs text-ink-soft mt-0.5">
+                        Latest urgent alerts, active relief efforts, and workshops
+                      </p>
+                    </div>
                     {recentActivities.length > 0 && (
                       <button
                         onClick={() => setActiveTab("discover")}
-                        className="text-xs font-semibold text-verified hover:underline"
+                        className="text-xs font-semibold text-verified hover:underline flex items-center gap-1"
                       >
-                        Explore all
+                        <span>Explore all</span>
+                        <ChevronRight size={14} />
                       </button>
                     )}
                   </div>
@@ -640,10 +646,13 @@ export default function SupporterDashboard() {
                       No active relief campaigns or workshops reported right now.
                     </div>
                   ) : (
-                    <div className="divide-y divide-hairline border border-hairline rounded-xl bg-white/70 overflow-hidden shadow-xs">
-                      {recentActivities.map((item) => {
+                    <div className="divide-y divide-hairline border border-hairline rounded-xl bg-white/80 shadow-xs">
+                      {recentActivities.slice(0, 5).map((item, idx) => {
                         const isWorkshop = item.type === "workshop";
                         const isUrgent = Boolean(item.isUrgent || item.is_urgent);
+                        const locString = item.city || item.region || item.location || "On-ground";
+                        const isFirst = idx === 0;
+                        const isLast = idx === Math.min(recentActivities.length, 5) - 1;
 
                         return (
                           <div
@@ -657,108 +666,101 @@ export default function SupporterDashboard() {
                                 setActiveModal("campaign-info");
                               }
                             }}
-                            className={`px-4 py-2.5 flex items-center justify-between gap-3 cursor-pointer transition-colors group ${
+                            className={`px-4 py-3 flex items-center justify-between gap-3 cursor-pointer transition-colors group relative ${
+                              isFirst ? 'rounded-t-xl' : ''
+                            } ${isLast ? 'rounded-b-xl' : ''} ${
                               isUrgent 
-                                ? 'bg-red-50/50 hover:bg-red-100/60' 
-                                : isWorkshop 
-                                ? 'hover:bg-purple-50/50' 
-                                : 'hover:bg-emerald-50/50'
+                                ? 'bg-rose-50/40 hover:bg-rose-50/80' 
+                                : 'hover:bg-slate-50/80'
                             }`}
                           >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              {/* Type / Status Badge */}
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              {/* Clean Status Pill (No emojis, no pulsing) */}
                               {isUrgent ? (
-                                <span className="shrink-0 text-[10.5px] font-bold px-2 py-0.5 rounded bg-red-600 text-white animate-pulse">
-                                  ⚡ URGENT
+                                <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded tracking-wider uppercase bg-rose-100 text-rose-800 border border-rose-200">
+                                  Urgent
                                 </span>
                               ) : isWorkshop ? (
-                                <span className="shrink-0 text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-                                  🎓 Workshop
+                                <span className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded tracking-wide uppercase bg-sky-50 text-sky-700 border border-sky-200">
+                                  Workshop
                                 </span>
                               ) : (
-                                <span className="shrink-0 text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                  🚨 {item.disaster || "Relief"}
+                                <span className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded tracking-wide uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  Relief
                                 </span>
                               )}
 
-                              {/* Title & Location / NGO Metadata */}
-                              <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center sm:gap-3">
-                                <span className="text-sm font-semibold text-ink group-hover:text-emerald-900 transition-colors truncate">
+                              {/* Title & Metadata */}
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold text-slate-900 group-hover:text-emerald-900 transition-colors truncate leading-snug">
                                   {item.title || item.name}
-                                </span>
-                                <div className="flex items-center gap-1.5 text-xs text-ink-soft shrink-0">
-                                  <MapPin size={11} className="text-ink-soft shrink-0" />
-                                  <span>{item.city || item.region || item.location || "On-ground"}</span>
-                                  {(item.orgName || item.org_name) && (
-                                    <span className="hidden md:inline text-ink-soft/70">· {item.orgName || item.org_name}</span>
-                                  )}
+                                </p>
+                                <div className="flex items-center gap-2 text-xs text-ink-soft mt-0.5 truncate">
+                                  <span className="truncate">
+                                    {item.orgName || item.org_name || "Verified NGO Partner"}
+                                  </span>
                                   {item.date && (
-                                    <span className="hidden sm:inline text-ink-soft/70">· {item.date}</span>
+                                    <>
+                                      <span className="text-slate-300">·</span>
+                                      <span className="shrink-0">{item.date}</span>
+                                    </>
                                   )}
                                 </div>
                               </div>
                             </div>
 
-                            {/* Click Hint / Chevron */}
-                            <div className="flex items-center gap-1 text-xs font-semibold text-emerald-700 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0">
-                              <span className="hidden sm:inline">Details</span>
-                              <ChevronRight size={15} />
+                            {/* Location On-Hover Pin & Action Chevron */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {locString && (
+                                <div 
+                                  className="relative flex items-center"
+                                  onMouseEnter={() => setHoveredLocationId(item.id)}
+                                  onMouseLeave={() => setHoveredLocationId(null)}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setHoveredLocationId(hoveredLocationId === item.id ? null : item.id);
+                                    }}
+                                    className={`p-1.5 rounded-md transition-colors focus:outline-none ${
+                                      hoveredLocationId === item.id 
+                                        ? 'text-emerald-700 bg-emerald-50' 
+                                        : 'text-slate-400 hover:text-emerald-700 hover:bg-slate-100'
+                                    }`}
+                                    title={locString}
+                                    aria-label={`Location: ${locString}`}
+                                  >
+                                    <MapPin size={15} />
+                                  </button>
+                                  {/* Floating Tooltip with React State & Touch Fallback */}
+                                  {hoveredLocationId === item.id && (
+                                    <div 
+                                      role="tooltip"
+                                      className="absolute right-0 bottom-full mb-1.5 flex items-center px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/95 backdrop-blur-xs rounded-md shadow-lg pointer-events-none whitespace-nowrap z-50"
+                                    >
+                                      <span>{locString}</span>
+                                      <div className="absolute -bottom-1 right-2.5 w-2 h-2 bg-slate-900/95 rotate-45" />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="text-slate-300 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition-all pl-1">
+                                <ChevronRight size={16} />
+                              </div>
                             </div>
                           </div>
                         );
                       })}
+
+
                     </div>
                   )}
                 </section>
               </div>
 
-              {/* Impact Summary Banner (REAL DATA ONLY) */}
-              <section className="mt-10 border border-hairline rounded-xl p-6 bg-white/50 shadow-xs">
-                <div className="flex items-center gap-3 mb-2">
-                  <Sparkles size={20} className="text-emerald-700" />
-                  <h2 className="font-display text-xl text-ink font-semibold">My impact summary</h2>
-                </div>
-                {stats.activities === 0 && stats.totalDonations === 0 ? (
-                  <p className="text-ink text-sm">
-                    You have not participated in any campaigns yet. Apply for open campaigns or make a contribution to start making a tangible difference!
-                  </p>
-                ) : (
-                  <p className="text-ink leading-relaxed text-sm md:text-base">
-                    You have participated in <span className="font-semibold text-emerald-800">{stats.activities} relief initiatives</span> and contributed{" "}
-                    <span className="font-semibold text-emerald-800">₹{stats.totalDonatedAmount.toLocaleString("en-IN")}</span> to disaster response operations.
-                  </p>
-                )}
-              </section>
 
-              {/* Quick Actions & Explore Campaigns Banner */}
-              <section className="mt-8 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 rounded-xl bg-verified text-paper px-6 py-6 shadow-sm">
-                <div>
-                  <p className="font-display text-xl font-medium">Ready for what's next?</p>
-                  <p className="text-paper/85 text-sm mt-1">
-                    Browse open emergency campaigns needing volunteers and relief supplies right now.
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <button
-                    onClick={() => {
-                      setSelectedCampaign(null);
-                      setSelectedNgo(ngosList.length > 0 ? ngosList[0] : null);
-                      setActiveModal("donate");
-                    }}
-                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-semibold hover:bg-emerald-700 shadow-xs transition-colors"
-                  >
-                    <HeartHandshake size={16} />
-                    Quick Donate
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("discover")}
-                    className="inline-flex items-center gap-2 rounded-lg bg-paper text-verified px-4 py-2 text-sm font-semibold hover:bg-white transition-colors"
-                  >
-                    Explore campaigns
-                    <ArrowRight size={16} strokeWidth={2} />
-                  </button>
-                </div>
-              </section>
             </>
           )}
 

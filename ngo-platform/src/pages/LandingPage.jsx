@@ -41,19 +41,25 @@ export default function LandingPage() {
   const fullText = "Where Helping Hands Meet Those In Need";
 
   useEffect(() => {
+    // Only start typewriter effect once the splash loader has finished and home screen is visible
+    if (showSplash) return;
+
     let currentText = '';
+    let timer = null;
 
     const type = () => {
       if (currentText.length < fullText.length) {
         currentText = fullText.substring(0, currentText.length + 1);
         setTypedText(currentText);
-        setTimeout(type, 80); 
+        timer = setTimeout(type, 75); 
       }
     };
 
-    const timer = setTimeout(type, 500);
-    return () => clearTimeout(timer);
-  }, []);
+    timer = setTimeout(type, 250);
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [showSplash]);
 
   // Fetch strictly REAL live campaigns and workshops from backend (NO MOCK DATA)
   useEffect(() => {
@@ -144,6 +150,18 @@ export default function LandingPage() {
     }
   };
 
+  const scrollToCampaigns = (e) => {
+    if (e) e.preventDefault();
+    const el = document.getElementById('campaigns');
+    if (el) {
+      if (window.__lenis) {
+        window.__lenis.scrollTo(el, { offset: -60, duration: 1.2 });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <div className="relative">
       {/* Custom Brand Pulsating Splash Loader */}
@@ -157,30 +175,74 @@ export default function LandingPage() {
         {/* Green Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-green-900/95 via-green-900/70 to-transparent z-0"></div>
 
-        {/* URGENT EMERGENCY TICKER */}
-        <div className="relative z-20 pt-24"> 
-          <div className="bg-transparent text-white overflow-hidden py-2 flex items-center">
-            <div className="whitespace-nowrap animate-marquee font-medium text-sm tracking-wide text-white">
-              <span 
-                onClick={() => navigate('/register/individual')}
-                style={{ color: '#ffffff' }}
-                className="mx-8 cursor-pointer text-white hover:text-green-300 hover:underline transition-colors drop-shadow-md"
-              >
-                URGENT: Flash Floods Relief - Food and Clean Water Donations Required Immediately →
+        {/* LIVE RED EMERGENCY DISPATCH BAR */}
+        <div className="relative z-20 mt-16 bg-gradient-to-r from-red-600/60 via-red-500/50 to-red-600/60 text-white shadow-[0_4px_25px_rgba(239,68,68,0.25)] border-y border-white/25 backdrop-blur-lg">
+          <div className="w-full max-w-[1720px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 flex items-center h-10 overflow-hidden">
+            {/* Left Anchored Live Beacon Badge */}
+            <div className="flex items-center shrink-0 pr-3.5 mr-3.5 border-r border-white/30 z-10">
+              <span className="relative flex h-2.5 w-2.5 mr-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-85"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
               </span>
-              <span 
-                onClick={() => navigate('/register/individual')}
-                style={{ color: '#ffffff' }}
-                className="mx-8 cursor-pointer text-white hover:text-green-300 hover:underline transition-colors drop-shadow-md"
-              >
-                EMERGENCY: Landslide in Northern Region - On-ground Medical Volunteers Needed →
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white text-red-600 shadow-sm">
+                Live Alert
               </span>
+            </div>
+
+            {/* Marquee Ticker with Pause on Hover */}
+            <div className="flex-1 overflow-hidden flex items-center">
+              <div className="whitespace-nowrap animate-marquee flex items-center text-xs sm:text-sm font-medium tracking-wide">
+                <div 
+                  onClick={scrollToCampaigns}
+                  className="mx-6 cursor-pointer inline-flex items-center gap-2 hover:text-red-100 transition-colors"
+                >
+                  <span className="px-1.5 py-0.5 rounded bg-white/20 text-white border border-white/25 text-[10px] font-black tracking-wider uppercase shadow-xs">
+                    Urgent Relief
+                  </span>
+                  <span>Flash Floods Relief (Bihar & Assam) — Food and Clean Water Donations Required Immediately</span>
+                  <span className="font-bold underline decoration-white/70 hover:decoration-white">Respond Now →</span>
+                </div>
+
+                <div 
+                  onClick={scrollToCampaigns}
+                  className="mx-6 cursor-pointer inline-flex items-center gap-2 hover:text-red-100 transition-colors"
+                >
+                  <span className="px-1.5 py-0.5 rounded bg-white/20 text-white border border-white/25 text-[10px] font-black tracking-wider uppercase shadow-xs">
+                    Emergency Rescue
+                  </span>
+                  <span>Catastrophic Landslides (Wayanad & Northern Corridors) — On-Ground Medical Volunteers Needed</span>
+                  <span className="font-bold underline decoration-white/70 hover:decoration-white">Deploy →</span>
+                </div>
+
+                {/* Duplicated for seamless loop */}
+                <div 
+                  onClick={scrollToCampaigns}
+                  className="mx-6 cursor-pointer inline-flex items-center gap-2 hover:text-red-100 transition-colors"
+                >
+                  <span className="px-1.5 py-0.5 rounded bg-white/20 text-white border border-white/25 text-[10px] font-black tracking-wider uppercase shadow-xs">
+                    Urgent Relief
+                  </span>
+                  <span>Flash Floods Relief (Bihar & Assam) — Food and Clean Water Donations Required Immediately</span>
+                  <span className="font-bold underline decoration-white/70 hover:decoration-white">Respond Now →</span>
+                </div>
+
+                <div 
+                  onClick={scrollToCampaigns}
+                  className="mx-6 cursor-pointer inline-flex items-center gap-2 hover:text-red-100 transition-colors"
+                >
+                  <span className="px-1.5 py-0.5 rounded bg-white/20 text-white border border-white/25 text-[10px] font-black tracking-wider uppercase shadow-xs">
+                    Emergency Rescue
+                  </span>
+                  <span>Catastrophic Landslides (Wayanad & Northern Corridors) — On-Ground Medical Volunteers Needed</span>
+                  <span className="font-bold underline decoration-white/70 hover:decoration-white">Deploy →</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Content Container (Tagline & Inline Stats) */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col justify-center pb-32">
+        <div className="relative z-10 w-full max-w-[1720px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16 flex-grow flex flex-col justify-center pb-32">
           
           {/* Animated, Interactive Tagline */}
           <div className="min-h-[120px] md:min-h-[140px] flex items-end mb-6">
@@ -223,7 +285,7 @@ export default function LandingPage() {
       </section>
 
       {/* Traffic Controller Gateways */}
-      <section className="pt-8 pb-12 bg-white sm:pt-10 sm:pb-16 lg:pt-12 lg:pb-20">
+      <section id="gateways" className="pt-8 pb-12 bg-white sm:pt-10 sm:pb-16 lg:pt-12 lg:pb-20">
         <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 mt-4 text-center sm:mt-6 sm:grid-cols-2 sm:gap-x-12 gap-y-12 md:gap-0">
             
@@ -400,10 +462,12 @@ export default function LandingPage() {
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
           onClick={() => setSelectedItem(null)}
+          data-lenis-prevent
         >
           <div 
-            className="bg-white max-w-lg w-full p-6 shadow-xl relative border border-gray-200 rounded-[10px] text-left"
+            className="bg-white max-w-lg w-full p-6 shadow-xl relative border border-gray-200 rounded-[10px] text-left max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
+            data-lenis-prevent
           >
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold px-2.5 py-1 uppercase tracking-wider rounded bg-[#eaf6ee] text-[#0e632d] border border-[#b8e2c5]/70">
@@ -411,7 +475,7 @@ export default function LandingPage() {
               </span>
               <button 
                 onClick={() => setSelectedItem(null)}
-                className="text-gray-400 hover:text-gray-700 p-1 text-lg font-bold"
+                className="text-gray-400 hover:text-gray-700 p-1 text-lg font-bold cursor-pointer"
                 aria-label="Close modal"
               >
                 ✕
@@ -446,7 +510,7 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={() => setSelectedItem(null)}
-                className="w-full sm:w-auto px-4 py-2.5 text-xs md:text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                className="w-full sm:w-auto px-4 py-2.5 text-xs md:text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -455,7 +519,7 @@ export default function LandingPage() {
                 <button
                   type="button"
                   onClick={handleActionClick}
-                  className="w-full sm:flex-1 py-2.5 text-xs md:text-sm font-semibold text-white bg-[#0e632d] hover:bg-[#0a4d23] rounded-md transition-colors"
+                  className="w-full sm:flex-1 py-2.5 text-xs md:text-sm font-semibold text-white bg-[#0e632d] hover:bg-[#0a4d23] rounded-md transition-colors cursor-pointer"
                 >
                   Register for Workshop →
                 </button>
@@ -464,14 +528,14 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={handleActionClick}
-                    className="flex-1 py-2.5 text-xs md:text-sm font-semibold text-[#0e632d] bg-[#eaf6ee] hover:bg-[#d8eedf] border border-[#b8e2c5] rounded-md transition-colors"
+                    className="flex-1 py-2.5 text-xs md:text-sm font-semibold text-[#0e632d] bg-[#eaf6ee] hover:bg-[#d8eedf] border border-[#b8e2c5] rounded-md transition-colors cursor-pointer"
                   >
                     Volunteer Now →
                   </button>
                   <button
                     type="button"
                     onClick={handleActionClick}
-                    className="flex-1 py-2.5 text-xs md:text-sm font-semibold text-white bg-[#0e632d] hover:bg-[#0a4d23] rounded-md transition-colors"
+                    className="flex-1 py-2.5 text-xs md:text-sm font-semibold text-white bg-[#0e632d] hover:bg-[#0a4d23] rounded-md transition-colors cursor-pointer"
                   >
                     Donate Funds →
                   </button>

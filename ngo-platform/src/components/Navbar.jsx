@@ -35,7 +35,11 @@ export default function Navbar({ userContext }) {
     setMobileMenuOpen(false);
     const footerContact = document.getElementById('contact');
     if (footerContact) {
-      footerContact.scrollIntoView({ behavior: 'smooth' });
+      if (window.__lenis) {
+        window.__lenis.scrollTo(footerContact, { offset: -60, duration: 1.2 });
+      } else {
+        footerContact.scrollIntoView({ behavior: 'smooth' });
+      }
     } else {
       navigate('/#contact');
     }
@@ -46,7 +50,13 @@ export default function Navbar({ userContext }) {
     setMobileMenuOpen(false);
     if (isHome) {
       const el = document.getElementById('campaigns');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (el) {
+        if (window.__lenis) {
+          window.__lenis.scrollTo(el, { offset: -60, duration: 1.2 });
+        } else {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     } else {
       navigate('/#campaigns');
     }
@@ -58,7 +68,7 @@ export default function Navbar({ userContext }) {
         ? 'absolute top-0 left-0 bg-transparent' 
         : 'sticky top-0 bg-white/95 backdrop-blur-md shadow-xs border-b border-gray-100'
     }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1720px] mx-auto px-6 sm:px-10 lg:px-12 xl:px-16">
         <div className="flex justify-between items-center h-16">
           
           {/* Logo */}
@@ -99,6 +109,17 @@ export default function Navbar({ userContext }) {
               }`}
             >
               NGO Directory
+            </Link>
+
+            <Link 
+              to="/volunteers" 
+              className={`text-sm font-semibold transition-colors ${
+                location.pathname === '/volunteers'
+                  ? (isHome ? 'text-white border-b-2 border-white pb-1' : 'text-[#0e632d] font-bold')
+                  : (isHome ? 'text-gray-100 hover:text-white' : 'text-gray-600 hover:text-[#0e632d]')
+              }`}
+            >
+              Volunteers
             </Link>
 
             <a 
@@ -227,6 +248,12 @@ export default function Navbar({ userContext }) {
               className="px-3 py-2 rounded-md hover:bg-green-50 hover:text-[#0e632d] text-gray-800 transition-colors"
             >
               NGO Directory
+            </Link>
+            <Link 
+              to="/volunteers" 
+              className="px-3 py-2 rounded-md hover:bg-green-50 hover:text-[#0e632d] text-gray-800 transition-colors"
+            >
+              Volunteers
             </Link>
             <a 
               href="#contact" 

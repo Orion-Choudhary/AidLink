@@ -2,51 +2,46 @@ const pool = require('../config/db');
 
 exports.getNgoProfile = async (req, res) => {
   try {
+    const ngoId = req.user.id;
     const result = await pool.query(
-      `SELECT id, org_name as name, org_name, contact_name, email, darpan_id, 
-              verification_status, registration_cert_path, supporting_doc_path,
-              short_name, hq, founded, tagline,
-              reg_type as "regType", darpan_id as "regNumber", pan, fcra, 
-              status_80g as "status80g", sectors, verification, team, docs, created_at
-       FROM ngos WHERE id = $1 AND email = $2`,
-      [req.user.id, req.user.email] 
+      `SELECT 
+        id, 
+        org_name, 
+        contact_name, 
+        email, 
+        darpan_id, 
+        verification_status, 
+        created_at,
+        registration_cert_path,
+        supporting_doc_path
+       FROM ngos 
+       WHERE id = $1`,
+      [ngoId]
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'NGO not found' });
-    
-    const row = result.rows[0];
-    
-    const profile = {
-      ...row,
-      name: row.name || row.org_name || 'Organisation',
-      shortName: row.short_name || (row.org_name ? row.org_name.substring(0, 3).toUpperCase() : 'NGO'),
-      hq: row.hq || 'India',
-      founded: row.founded || (row.created_at ? new Date(row.created_at).getFullYear() : 2024),
-      tagline: row.tagline || 'Emergency Disaster Response & Community Assistance',
-      sectors: Array.isArray(row.sectors) && row.sectors.length > 0 ? row.sectors : ['Disaster Relief', 'Emergency Aid', 'Community Rehabilitation'],
-      regType: row.regType || 'Registered Non-Profit Society',
-      regNumber: row.regNumber || row.darpan_id || 'DARPAN/REG/2026',
-      pan: row.pan || 'AAATN1234F',
-      fcra: row.fcra || 'Eligible / Registered',
-      status80g: row.status80g || '80G Tax Exempt Certified',
-      verification: row.verification && typeof row.verification === 'object' && row.verification.steps ? row.verification : {
-        status: row.verification_status || 'verified',
-        completedOn: row.created_at || '2026-01-15',
-        steps: [
-          { label: 'Darpan Portal & Registration ID', detail: `Verified registration ID: ${row.darpan_id || 'DARPAN/REG/2026'}` },
-          { label: 'Identity & Legal Certification', detail: 'Registration certificate and supporting documentation verified.' },
-          { label: 'Bank & Financial Accountability Check', detail: 'Direct donation routing & 80G tax exemption active.' }
-        ]
-      },
-      team: Array.isArray(row.team) && row.team.length > 0 ? row.team : [
-        { name: row.contact_name || 'Coordinator', role: 'Operations & Field Lead', since: '2024' }
-      ],
-      docs: Array.isArray(row.docs) && row.docs.length > 0 ? row.docs : [
-        { name: 'Registration Certificate', type: 'PDF Document', updated: row.created_at || '2026-01-10', path: row.registration_cert_path },
-        { name: 'Supporting Authority Letter', type: 'PDF Document', updated: row.created_at || '2026-01-10', path: row.supporting_doc_path }
-      ]
-    };
 
-    res.json(profile);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ msg: 'NGO not found' });
+    }
+
+    const ngo = result.rows[0];
+
+    const campaignsResult = await pool.query(
+      `SELECT * FROM campaigns WHERE ngo_id = $1 ORDER BY created_at DESC`,
+      [ngoId]
+    );
+
+    res.json({
+      id: ngo.id,
+      orgName: ngo.org_name,
+      contactName: ngo.contact_name,
+      email: ngo.email,
+      darpanId: ngo.darpan_id,
+      verificationStatus: ngo.verification_status,
+      registrationCertPath: ngo.registration_cert_path,
+      supportingDocPath: ngo.supporting_doc_path,
+      createdAt: ngo.created_at,
+      campaigns: campaignsResult.rows
+    });
   } catch (err) {
     console.error('Error fetching NGO profile:', err.message);
     res.status(500).send('Server Error');
@@ -92,6 +87,52 @@ exports.getNgoDirectory = async (req, res) => {
         n.sectors,
         n.team,
         n.created_at,
+        (
+          SELECT COALESCE(SUM(d.amount), 0)::numeric 
+          FROM donations d 
+          LEFT JOIN campaigns c ON d.campaign_id = c.id 
+          WHERE d.ngo_id = n.id OR (d.ngo_id IS NULL AND c.ngo_id = n.id)
+        ) AS total_donated,
+        (
+          SELECT COUNT(d.id)::int 
+          FROM donations d 
+          LEFT JOIN campaigns c ON d.campaign_id = c.id 
+          WHERE d.ngo_id = n.id OR (d.ngo_id IS NULL AND c.ngo_id = n.id)
+        ) AS donations_count,
+        (
+          SELECT COALESCE(SUM(e.amount), 0)::numeric 
+          FROM expenses e 
+          JOIN campaigns c ON e.campaign_id = c.id 
+          WHERE c.ngo_id = n.id
+        ) AS total_used,
+        (
+          SELECT COUNT(e.id)::int 
+          FROM expenses e 
+          JOIN campaigns c ON e.campaign_id = c.id 
+          WHERE c.ngo_id = n.id
+        ) AS expenses_count,
+        (
+          SELECT COUNT(ev.id)::int 
+          FROM evidence ev 
+          JOIN campaigns c ON ev.campaign_id = c.id 
+          WHERE c.ngo_id = n.id
+        ) AS evidence_count,
+        (
+          SELECT COALESCE(SUM(c.target_households), 0)::int 
+          FROM campaigns c 
+          WHERE c.ngo_id = n.id
+        ) AS target_households,
+        (
+          SELECT COALESCE(json_agg(json_build_object('category', cat.category, 'total', cat.total)), '[]') 
+          FROM (
+            SELECT e.category, SUM(e.amount)::numeric as total 
+            FROM expenses e 
+            JOIN campaigns c ON e.campaign_id = c.id 
+            WHERE c.ngo_id = n.id 
+            GROUP BY e.category 
+            ORDER BY total DESC
+          ) cat
+        ) AS expense_categories,
         (
           SELECT COALESCE(json_agg(
             json_build_object(
@@ -153,6 +194,10 @@ exports.getNgoDirectory = async (req, res) => {
         ? row.sectors
         : ['Disaster Relief', 'Emergency Aid', 'Community Rehabilitation'];
 
+      const totalDonated = parseFloat(row.total_donated) || 0;
+      const totalUsed = parseFloat(row.total_used) || 0;
+      const utilizationRate = totalDonated > 0 ? Math.round((totalUsed / totalDonated) * 100) : 0;
+
       return {
         id: row.id,
         name: row.org_name,
@@ -175,6 +220,14 @@ exports.getNgoDirectory = async (req, res) => {
         campaignsCount: activeCampaigns.length,
         totalCampaignsCount: row.total_campaigns_count || 0,
         totalHouseholdsReached: row.total_households_reached || 0,
+        targetHouseholds: row.target_households || 0,
+        totalDonated,
+        donationsCount: row.donations_count || 0,
+        totalUsed,
+        expensesCount: row.expenses_count || 0,
+        evidenceCount: row.evidence_count || 0,
+        utilizationRate,
+        expenseCategories: row.expense_categories || [],
         regions,
         workshops: row.workshops || [],
         workshopsCount: (row.workshops || []).length,

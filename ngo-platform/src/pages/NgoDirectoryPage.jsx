@@ -15,13 +15,17 @@ import {
   X,
   Clock,
   TrendingUp,
-  ChevronRight
+  ChevronRight,
+  FileCheck,
+  IndianRupee,
+  PieChart,
+  CheckCircle2
 } from 'lucide-react';
 import usePageTitle from '../hooks/usePageTitle';
 import { API_BASE } from '../config/api';
 
 export default function NgoDirectoryPage() {
-  usePageTitle('Verified NGO Directory');
+  usePageTitle('NGO Financial Transparency & Impact Directory');
   const [ngos, setNgos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,7 +34,7 @@ export default function NgoDirectoryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSector, setSelectedSector] = useState('ALL');
   const [selectedRegion, setSelectedRegion] = useState('ALL');
-  const [sortBy, setSortBy] = useState('MOST_ACTIVE');
+  const [sortBy, setSortBy] = useState('MOST_DEPLOYED');
 
   // Modal state
   const [selectedNgo, setSelectedNgo] = useState(null);
@@ -76,13 +80,21 @@ export default function NgoDirectoryPage() {
     return Array.from(regionsSet).sort();
   }, [ngos]);
 
-  // Platform Aggregates
+  // Platform Real Aggregates
   const totalActiveMissions = useMemo(
     () => ngos.reduce((acc, ngo) => acc + (ngo.campaignsCount || 0), 0),
     [ngos]
   );
   const totalHouseholdsReached = useMemo(
-    () => ngos.reduce((acc, ngo) => acc + (ngo.totalHouseholdsReached || 0), 0),
+    () => ngos.reduce((acc, ngo) => acc + (ngo.totalHouseholdsReached || ngo.targetHouseholds || 0), 0),
+    [ngos]
+  );
+  const totalDonated = useMemo(
+    () => ngos.reduce((acc, ngo) => acc + (ngo.totalDonated || 0), 0),
+    [ngos]
+  );
+  const totalUsed = useMemo(
+    () => ngos.reduce((acc, ngo) => acc + (ngo.totalUsed || 0), 0),
     [ngos]
   );
 
@@ -90,7 +102,6 @@ export default function NgoDirectoryPage() {
   const filteredNgos = useMemo(() => {
     return ngos
       .filter((ngo) => {
-        // Search filter
         const query = searchQuery.toLowerCase().trim();
         const matchesQuery =
           !query ||
@@ -102,12 +113,10 @@ export default function NgoDirectoryPage() {
           ngo.sectors?.some((s) => s.toLowerCase().includes(query)) ||
           ngo.regions?.some((r) => r.toLowerCase().includes(query));
 
-        // Sector filter
         const matchesSector =
           selectedSector === 'ALL' ||
           (Array.isArray(ngo.sectors) && ngo.sectors.includes(selectedSector));
 
-        // Region filter
         const matchesRegion =
           selectedRegion === 'ALL' ||
           ngo.hq === selectedRegion ||
@@ -116,17 +125,20 @@ export default function NgoDirectoryPage() {
         return matchesQuery && matchesSector && matchesRegion;
       })
       .sort((a, b) => {
+        if (sortBy === 'MOST_DEPLOYED') {
+          return (b.totalUsed || 0) - (a.totalUsed || 0);
+        }
+        if (sortBy === 'MOST_DONATED') {
+          return (b.totalDonated || 0) - (a.totalDonated || 0);
+        }
+        if (sortBy === 'MOST_IMPACT') {
+          return (b.totalHouseholdsReached || b.targetHouseholds || 0) - (a.totalHouseholdsReached || a.targetHouseholds || 0);
+        }
         if (sortBy === 'MOST_ACTIVE') {
           return (b.campaignsCount || 0) - (a.campaignsCount || 0);
         }
-        if (sortBy === 'MOST_IMPACT') {
-          return (b.totalHouseholdsReached || 0) - (a.totalHouseholdsReached || 0);
-        }
         if (sortBy === 'ALPHABETICAL') {
           return a.name.localeCompare(b.name);
-        }
-        if (sortBy === 'ESTABLISHED') {
-          return (a.founded || 9999) - (b.founded || 9999);
         }
         return 0;
       });
@@ -139,44 +151,47 @@ export default function NgoDirectoryPage() {
     setSearchQuery('');
     setSelectedSector('ALL');
     setSelectedRegion('ALL');
-    setSortBy('MOST_ACTIVE');
+    setSortBy('MOST_DEPLOYED');
   };
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans flex flex-col pt-16">
-      {/* Hero Section - White Background with Platform Green Accents */}
+      {/* Hero Section - Radical Transparency Metrics */}
       <section className="bg-gradient-to-b from-green-50/80 via-white to-white border-b border-gray-100 py-12 md:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
             <div className="max-w-2xl">
               <span className="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-green-100 text-green-700 text-xs font-bold tracking-wider uppercase mb-4">
                 <ShieldCheck className="w-4 h-4 text-green-600" />
-                Vetted & Accredited Organizations
+                Public NGO Financial & Impact Transparency
               </span>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight">
-                Verified NGO Directory
+                Verified NGO Directory & Financials
               </h1>
               <p className="mt-3 text-base sm:text-lg text-gray-600 leading-relaxed">
-                Discover registered non-profit partners powering verified disaster relief,
-                emergency healthcare, and community rehabilitation missions across India.
+                Inspect every rupee contributed and deployed for disaster relief. Examine verified receipts,
+                expenditure categories, and real on-ground household impact.
               </p>
             </div>
 
             {/* Platform Quick Stats Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white border border-green-100 p-4 rounded-2xl shadow-sm">
               <div className="text-center px-3 py-1">
-                <div className="text-2xl font-extrabold text-green-600">{ngos.length}</div>
+                <div className="text-2xl font-extrabold text-green-600">
+                  ₹{(totalDonated / 100000).toFixed(2)}L
+                </div>
                 <div className="text-xs text-gray-500 font-medium flex items-center justify-center gap-1 mt-1">
-                  <Building2 className="w-3.5 h-3.5 text-green-600" />
-                  Verified NGOs
+                  <span>Contributions Received</span>
                 </div>
               </div>
 
               <div className="text-center px-3 py-1 border-l border-gray-100">
-                <div className="text-2xl font-extrabold text-green-600">{totalActiveMissions}</div>
+                <div className="text-2xl font-extrabold text-green-600">
+                  ₹{(totalUsed / 100000).toFixed(2)}L
+                </div>
                 <div className="text-xs text-gray-500 font-medium flex items-center justify-center gap-1 mt-1">
                   <TrendingUp className="w-3.5 h-3.5 text-green-600" />
-                  Active Missions
+                  Direct Funds Deployed
                 </div>
               </div>
 
@@ -191,10 +206,10 @@ export default function NgoDirectoryPage() {
               </div>
 
               <div className="text-center px-3 py-1 border-l border-gray-100">
-                <div className="text-2xl font-extrabold text-green-600">{allRegions.length}</div>
+                <div className="text-2xl font-extrabold text-green-600">{ngos.length}</div>
                 <div className="text-xs text-gray-500 font-medium flex items-center justify-center gap-1 mt-1">
-                  <MapPin className="w-3.5 h-3.5 text-green-600" />
-                  Active Hubs
+                  <Building2 className="w-3.5 h-3.5 text-green-600" />
+                  Verified Non-Profits
                 </div>
               </div>
             </div>
@@ -257,10 +272,11 @@ export default function NgoDirectoryPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition text-gray-700 font-medium"
               >
-                <option value="MOST_ACTIVE">Sort: Most Active Missions</option>
+                <option value="MOST_DEPLOYED">Sort: Most Funds Deployed</option>
+                <option value="MOST_DONATED">Sort: Highest Donations</option>
                 <option value="MOST_IMPACT">Sort: Highest Households Aided</option>
+                <option value="MOST_ACTIVE">Sort: Most Active Missions</option>
                 <option value="ALPHABETICAL">Sort: Alphabetical (A-Z)</option>
-                <option value="ESTABLISHED">Sort: Oldest Established</option>
               </select>
             </div>
           </div>
@@ -314,18 +330,6 @@ export default function NgoDirectoryPage() {
           <div className="text-sm font-medium text-gray-600">
             Showing <span className="font-bold text-gray-900">{filteredNgos.length}</span> verified{' '}
             {filteredNgos.length === 1 ? 'organization' : 'organizations'}
-            {selectedSector !== 'ALL' && (
-              <span>
-                {' '}
-                in <span className="text-green-700 font-semibold">{selectedSector}</span>
-              </span>
-            )}
-            {selectedRegion !== 'ALL' && (
-              <span>
-                {' '}
-                located in <span className="text-green-700 font-semibold">{selectedRegion}</span>
-              </span>
-            )}
           </div>
 
           <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200">
@@ -372,8 +376,7 @@ export default function NgoDirectoryPage() {
             </div>
             <h3 className="text-lg font-bold text-gray-900 mb-1">No NGOs Match Your Filters</h3>
             <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">
-              Try adjusting your search keywords, sector focus areas, or regional filter to discover
-              partner organizations.
+              Try adjusting your search keywords, sector focus areas, or regional filter.
             </p>
             <button
               onClick={resetFilters}
@@ -387,137 +390,178 @@ export default function NgoDirectoryPage() {
         {/* NGO Directory Grid */}
         {!loading && !error && filteredNgos.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredNgos.map((ngo) => (
-              <div
-                key={ngo.id}
-                className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-green-400 transition-all duration-200 flex flex-col overflow-hidden"
-              >
-                {/* NGO Card Header */}
-                <div className="p-6 border-b border-gray-100 flex-grow">
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div className="flex-grow">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h2 className="text-xl font-bold text-gray-900 leading-snug">
-                          {ngo.name}
-                        </h2>
-                        {ngo.shortName && (
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
-                            {ngo.shortName}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                        <span>HQ: {ngo.hq || 'India'}</span>
-                        {ngo.founded && <span>• Est. {ngo.founded}</span>}
-                      </p>
-                    </div>
-
-                    {/* Verified DARPAN Pill */}
-                    <div className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 border border-green-200 rounded-full text-green-700 text-xs font-semibold">
-                      <ShieldCheck className="w-4 h-4 text-green-600" />
-                      Verified
-                    </div>
-                  </div>
-
-                  {/* Mission / Tagline */}
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-4 leading-relaxed">
-                    {ngo.tagline ||
-                      'Dedicated to rapid humanitarian logistics, emergency relief, and community welfare across India.'}
-                  </p>
-
-                  {/* Sector Tags */}
-                  {Array.isArray(ngo.sectors) && ngo.sectors.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {ngo.sectors.slice(0, 4).map((s) => (
-                        <span
-                          key={s}
-                          className="px-2.5 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-md text-xs font-medium"
-                        >
-                          {s}
-                        </span>
-                      ))}
-                      {ngo.sectors.length > 4 && (
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-xs font-medium">
-                          +{ngo.sectors.length - 4} more
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Active Campaigns Teaser */}
-                  {Array.isArray(ngo.activeCampaigns) && ngo.activeCampaigns.length > 0 && (
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-2">
-                      <div className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center justify-between">
-                        <span className="flex items-center gap-1.5">
-                          <TrendingUp className="w-3.5 h-3.5 text-green-600" />
-                          Featured Relief Missions
-                        </span>
-                        <span className="text-green-700 font-semibold lowercase text-xs">
-                          {ngo.campaignsCount} active
-                        </span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {ngo.activeCampaigns.slice(0, 2).map((camp) => (
-                          <div
-                            key={camp.id}
-                            className="text-xs text-gray-700 flex items-center justify-between gap-2"
-                          >
-                            <span className="truncate font-medium">{camp.name}</span>
-                            <span className="flex-shrink-0 text-gray-500 font-mono text-[11px]">
-                              {camp.progress}% funded
+            {filteredNgos.map((ngo) => {
+              const hasHighDeployment = ngo.totalUsed >= ngo.totalDonated && ngo.totalDonated > 0;
+              return (
+                <div
+                  key={ngo.id}
+                  className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-green-400 transition-all duration-200 flex flex-col overflow-hidden"
+                >
+                  {/* Card Header */}
+                  <div className="p-6 border-b border-gray-100 flex-grow">
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div className="flex-grow">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <h2 className="text-xl font-bold text-gray-900 leading-snug">
+                            {ngo.name}
+                          </h2>
+                          {ngo.shortName && (
+                            <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
+                              {ngo.shortName}
                             </span>
-                          </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                          <span>HQ: {ngo.hq || 'India'}</span>
+                          {ngo.founded && <span>• Est. {ngo.founded}</span>}
+                        </p>
+                      </div>
+
+                      {/* Verified DARPAN Pill */}
+                      <div className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 border border-green-200 rounded-full text-green-700 text-xs font-semibold">
+                        <ShieldCheck className="w-4 h-4 text-green-600" />
+                        Verified
+                      </div>
+                    </div>
+
+                    {/* Mission / Tagline */}
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-4 leading-relaxed">
+                      {ngo.tagline ||
+                        'Dedicated to rapid humanitarian logistics, emergency relief, and community welfare across India.'}
+                    </p>
+
+                    {/* Financial Metrics Transparency Bar */}
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 mb-4">
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="font-semibold text-gray-700 flex items-center gap-1">
+                          <TrendingUp className="w-3.5 h-3.5 text-green-600" />
+                          Financial Deployment
+                        </span>
+                        <span className="text-[11px] font-bold text-green-700">
+                          {hasHighDeployment
+                            ? '100% Deployed + Co-funded'
+                            : `${ngo.utilizationRate || 0}% Deployed`}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-xs mb-2">
+                        <div>
+                          <span className="text-gray-500 text-[11px] block">Donations Received</span>
+                          <span className="font-bold text-gray-900 text-sm">
+                            ₹{(ngo.totalDonated || 0).toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <div className="border-l border-gray-200 pl-3">
+                          <span className="text-gray-500 text-[11px] block">Direct Relief Deployed</span>
+                          <span className="font-bold text-green-700 text-sm">
+                            ₹{(ngo.totalUsed || 0).toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Deployment Progress Bar */}
+                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-green-600 h-2 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${Math.min(
+                              ngo.totalDonated > 0 ? (ngo.totalUsed / ngo.totalDonated) * 100 : 0,
+                              100
+                            )}%`
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Sector Tags */}
+                    {Array.isArray(ngo.sectors) && ngo.sectors.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {ngo.sectors.slice(0, 4).map((s) => (
+                          <span
+                            key={s}
+                            className="px-2.5 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-md text-xs font-medium"
+                          >
+                            {s}
+                          </span>
                         ))}
                       </div>
+                    )}
+
+                    {/* Active Campaigns Teaser */}
+                    {Array.isArray(ngo.activeCampaigns) && ngo.activeCampaigns.length > 0 && (
+                      <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-2">
+                        <div className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <TrendingUp className="w-3.5 h-3.5 text-green-600" />
+                            Active Missions
+                          </span>
+                          <span className="text-green-700 font-semibold lowercase text-xs">
+                            {ngo.campaignsCount} active
+                          </span>
+                        </div>
+                        <div className="space-y-1.5">
+                          {ngo.activeCampaigns.slice(0, 2).map((camp) => (
+                            <div
+                              key={camp.id}
+                              className="text-xs text-gray-700 flex items-center justify-between gap-2"
+                            >
+                              <span className="truncate font-medium">{camp.name}</span>
+                              <span className="flex-shrink-0 text-gray-500 font-mono text-[11px]">
+                                {camp.progress}% funded
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Key Metrics Bar */}
+                  <div className="bg-gray-50 px-6 py-3 border-b border-gray-100 grid grid-cols-3 gap-2 text-center text-xs">
+                    <div>
+                      <span className="text-gray-400 block text-[11px]">DARPAN ID</span>
+                      <span className="font-mono font-semibold text-gray-800 text-[11px] truncate block">
+                        {ngo.darpanId || 'Verified'}
+                      </span>
                     </div>
-                  )}
-                </div>
-
-                {/* Card Key Metrics Bar */}
-                <div className="bg-gray-50 px-6 py-3 border-b border-gray-100 grid grid-cols-3 gap-2 text-center text-xs">
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">DARPAN ID</span>
-                    <span className="font-mono font-semibold text-gray-800 text-[11px] truncate block">
-                      {ngo.darpanId || 'Verified'}
-                    </span>
+                    <div className="border-l border-gray-200 pl-2">
+                      <span className="text-gray-400 block text-[11px]">Households Aided</span>
+                      <span className="font-bold text-green-700 text-xs">
+                        {((ngo.totalHouseholdsReached || ngo.targetHouseholds) || 0).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                    <div className="border-l border-gray-200 pl-2">
+                      <span className="text-gray-400 block text-[11px]">Audited Invoices</span>
+                      <span className="font-bold text-gray-800 text-xs">
+                        {ngo.evidenceCount || 0} verified
+                      </span>
+                    </div>
                   </div>
-                  <div className="border-l border-gray-200 pl-2">
-                    <span className="text-gray-400 block text-[11px]">Households Aided</span>
-                    <span className="font-bold text-green-700 text-xs">
-                      {(ngo.totalHouseholdsReached || 0).toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                  <div className="border-l border-gray-200 pl-2">
-                    <span className="text-gray-400 block text-[11px]">Workshops</span>
-                    <span className="font-bold text-gray-800 text-xs">
-                      {ngo.workshopsCount || 0} scheduled
-                    </span>
-                  </div>
-                </div>
 
-                {/* Card Footer Actions */}
-                <div className="p-4 bg-white flex items-center gap-3">
-                  <button
-                    onClick={() => setSelectedNgo(ngo)}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-all shadow-sm"
-                  >
-                    <span>View Profile & Missions</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-
-                  {ngo.email && (
-                    <a
-                      href={`mailto:${ngo.email}`}
-                      title={`Email ${ngo.name}`}
-                      className="p-2.5 text-gray-500 hover:text-green-600 hover:bg-green-50 border border-gray-200 rounded-xl transition"
+                  {/* Card Footer Actions */}
+                  <div className="p-4 bg-white flex items-center gap-3">
+                    <button
+                      onClick={() => setSelectedNgo(ngo)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-all shadow-sm"
                     >
-                      <Mail className="w-4 h-4" />
-                    </a>
-                  )}
+                      <span>View Financials & Impact Dossier</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+
+                    {ngo.email && (
+                      <a
+                        href={`mailto:${ngo.email}`}
+                        title={`Email ${ngo.name}`}
+                        className="p-2.5 text-gray-500 hover:text-green-600 hover:bg-green-50 border border-gray-200 rounded-xl transition"
+                      >
+                        <Mail className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
@@ -533,7 +577,7 @@ export default function NgoDirectoryPage() {
   );
 }
 
-// Modal for in-depth profile exploration - Clean White Theme
+// Modal for in-depth profile & financial transparency exploration
 function NgoDirectoryDetailModal({ ngo, onClose }) {
   if (!ngo) return null;
 
@@ -593,6 +637,67 @@ function NgoDirectoryDetailModal({ ngo, onClose }) {
 
         {/* Modal Body */}
         <div className="p-6 sm:p-8 overflow-y-auto space-y-6">
+          {/* Key Financial Deployment Dashboard */}
+          <div>
+            <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <TrendingUp className="w-4 h-4 text-green-600" />
+              Financial Transparency & Spending Metrics
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-green-50/50 p-4 rounded-2xl border border-green-100 text-xs text-center">
+              <div>
+                <span className="text-gray-500 block font-medium">Donations Received</span>
+                <span className="font-extrabold text-gray-900 text-base">
+                  ₹{(ngo.totalDonated || 0).toLocaleString('en-IN')}
+                </span>
+                <span className="text-[10px] text-gray-400 block">{ngo.donationsCount || 0} contributions</span>
+              </div>
+              <div className="border-l border-green-200 pl-2">
+                <span className="text-gray-500 block font-medium">Direct Relief Used</span>
+                <span className="font-extrabold text-green-700 text-base">
+                  ₹{(ngo.totalUsed || 0).toLocaleString('en-IN')}
+                </span>
+                <span className="text-[10px] text-gray-400 block">{ngo.expensesCount || 0} line-items</span>
+              </div>
+              <div className="border-l border-green-200 pl-2">
+                <span className="text-gray-500 block font-medium">Households Aided</span>
+                <span className="font-extrabold text-gray-900 text-base">
+                  {((ngo.totalHouseholdsReached || ngo.targetHouseholds) || 0).toLocaleString('en-IN')}
+                </span>
+                <span className="text-[10px] text-gray-400 block">families assisted</span>
+              </div>
+              <div className="border-l border-green-200 pl-2">
+                <span className="text-gray-500 block font-medium">Audited Invoices</span>
+                <span className="font-extrabold text-green-700 text-base">
+                  {ngo.evidenceCount || 0}
+                </span>
+                <span className="text-[10px] text-gray-400 block">proofs verified</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Categorized Spending Breakdown */}
+          {Array.isArray(ngo.expenseCategories) && ngo.expenseCategories.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <PieChart className="w-4 h-4 text-green-600" />
+                Verified Relief Expenditure Categories
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {ngo.expenseCategories.map((cat, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between text-xs"
+                  >
+                    <span className="font-medium text-gray-700">{cat.category}</span>
+                    <span className="font-bold text-gray-900">
+                      ₹{parseFloat(cat.total).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Key Accreditation & Legal Status */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-200 text-xs">
             <div>
@@ -608,32 +713,10 @@ function NgoDirectoryDetailModal({ ngo, onClose }) {
               <span className="font-semibold font-mono text-gray-800">{ngo.pan || 'Verified'}</span>
             </div>
             <div>
-              <span className="text-gray-400 block font-medium">Total Reached</span>
-              <span className="font-bold text-green-700">
-                {(ngo.totalHouseholdsReached || 0).toLocaleString('en-IN')} Households
-              </span>
+              <span className="text-gray-400 block font-medium">80G Status</span>
+              <span className="font-semibold text-green-700">{ngo.status80g || 'Active'}</span>
             </div>
           </div>
-
-          {/* Focus Areas */}
-          {Array.isArray(ngo.sectors) && ngo.sectors.length > 0 && (
-            <div>
-              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-green-600" />
-                Key Focus Areas & Causes
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {ngo.sectors.map((s) => (
-                  <span
-                    key={s}
-                    className="px-3 py-1 bg-green-50 text-green-800 border border-green-200 rounded-lg text-xs font-semibold"
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Active Campaigns */}
           <div>
